@@ -1,0 +1,1963 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Schrödinger's Rescue: The Quantum GATE Challenge</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600&display=swap');
+
+:root {
+  --bg:#050510; --bg2:#0a0a1f; --bg3:#0d0d2b;
+  --cyan:#00f5ff; --pink:#ff00a8; --green:#00ff88;
+  --yellow:#ffe000; --purple:#a855f7;
+  --text:#e0e8ff; --dim:#6070a0;
+  --border:rgba(0,245,255,0.2);
+  --box:68px; --gap:7px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif;font-size:16px;min-height:100vh;overflow-x:hidden;}
+
+/* ─── Starfield ─── */
+#sf{position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(ellipse at 20% 50%,rgba(0,245,255,.04) 0%,transparent 60%),
+             radial-gradient(ellipse at 80% 20%,rgba(168,85,247,.05) 0%,transparent 60%),var(--bg);}
+#sf::before,#sf::after{content:'';position:absolute;inset:0;
+  background-image:radial-gradient(1px 1px at 10% 15%,rgba(255,255,255,.6) 0%,transparent 100%),
+    radial-gradient(1px 1px at 30% 80%,rgba(0,245,255,.5) 0%,transparent 100%),
+    radial-gradient(1px 1px at 50% 40%,rgba(255,255,255,.4) 0%,transparent 100%),
+    radial-gradient(1px 1px at 70% 65%,rgba(168,85,247,.5) 0%,transparent 100%),
+    radial-gradient(1px 1px at 85% 25%,rgba(255,255,255,.5) 0%,transparent 100%),
+    radial-gradient(1px 1px at 20% 55%,rgba(255,255,255,.3) 0%,transparent 100%),
+    radial-gradient(1px 1px at 60% 90%,rgba(0,245,255,.4) 0%,transparent 100%),
+    radial-gradient(1px 1px at 45% 10%,rgba(255,255,255,.6) 0%,transparent 100%),
+    radial-gradient(1px 1px at 90% 70%,rgba(255,0,168,.4) 0%,transparent 100%),
+    radial-gradient(1px 1px at 5% 95%,rgba(255,255,255,.3) 0%,transparent 100%);
+  animation:twinkle 4s ease-in-out infinite alternate;}
+#sf::after{
+  background-image:radial-gradient(1px 1px at 15% 35%,rgba(0,255,136,.4) 0%,transparent 100%),
+    radial-gradient(1px 1px at 40% 70%,rgba(255,255,255,.5) 0%,transparent 100%),
+    radial-gradient(1px 1px at 75% 15%,rgba(0,245,255,.4) 0%,transparent 100%),
+    radial-gradient(1px 1px at 55% 55%,rgba(255,255,255,.6) 0%,transparent 100%),
+    radial-gradient(1px 1px at 92% 45%,rgba(168,85,247,.5) 0%,transparent 100%),
+    radial-gradient(1px 1px at 25% 85%,rgba(255,255,255,.3) 0%,transparent 100%);
+  animation-delay:2s;}
+@keyframes twinkle{from{opacity:.5}to{opacity:1}}
+
+/* ─── Screen system ─── */
+.screen{position:relative;z-index:1;min-height:100vh;display:none;
+  flex-direction:column;align-items:center;padding:24px 16px 80px;
+  justify-content:flex-start;}
+.screen.active{display:flex;}
+.screen.centered{justify-content:center;}
+
+/* ─── Footer (req #20-21) ─── */
+.page-footer{
+  position:relative;z-index:5;
+  width:100%;text-align:center;
+  padding:14px 16px;
+  border-top:1px solid rgba(0,245,255,.1);
+  background:rgba(5,5,16,.9);
+  font-family:'Share Tech Mono',monospace;
+  font-size:11px;color:var(--dim);
+  line-height:1.8;
+  margin-top:auto;
+}
+.page-footer a{color:var(--cyan);text-decoration:none;}
+.page-footer a:hover{text-decoration:underline;}
+/* sticky footer at bottom of each screen */
+.screen > .page-footer{
+  position:fixed;bottom:0;left:0;right:0;z-index:50;
+}
+
+/* ─── Title ─── */
+.gtitle{font-family:'Orbitron',monospace;font-size:clamp(18px,5vw,40px);
+  font-weight:900;text-align:center;letter-spacing:2px;
+  background:linear-gradient(135deg,var(--cyan),var(--purple),var(--pink));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  filter:drop-shadow(0 0 20px rgba(0,245,255,.4));margin-bottom:6px;}
+.gsubtitle{font-family:'Share Tech Mono',monospace;font-size:clamp(9px,2vw,13px);
+  color:var(--cyan);letter-spacing:4px;text-align:center;margin-bottom:36px;opacity:.7;}
+
+/* ─── Panel ─── */
+.panel{background:rgba(10,10,31,.88);border:1px solid var(--border);border-radius:16px;
+  padding:28px 24px;backdrop-filter:blur(12px);
+  box-shadow:0 0 40px rgba(0,245,255,.06),inset 0 0 40px rgba(0,245,255,.02);
+  width:100%;max-width:680px;}
+
+.section-title{font-family:'Orbitron',monospace;font-size:12px;letter-spacing:3px;
+  color:var(--cyan);text-transform:uppercase;margin-bottom:18px;
+  display:flex;align-items:center;gap:10px;}
+.section-title::after{content:'';flex:1;height:1px;
+  background:linear-gradient(to right,var(--cyan),transparent);opacity:.35;}
+
+/* ─── Buttons ─── */
+.btn{font-family:'Orbitron',monospace;font-size:12px;letter-spacing:2px;
+  padding:13px 28px;border:none;border-radius:8px;cursor:pointer;
+  transition:all .3s;text-transform:uppercase;position:relative;overflow:hidden;}
+.btn::after{content:'';position:absolute;inset:0;
+  background:linear-gradient(45deg,transparent 40%,rgba(255,255,255,.1) 50%,transparent 60%);
+  transform:translateX(-100%);transition:transform .4s;}
+.btn:hover::after{transform:translateX(100%);}
+.btn-primary{background:linear-gradient(135deg,rgba(0,245,255,.12),rgba(168,85,247,.12));
+  border:1px solid var(--cyan);color:var(--cyan);box-shadow:0 0 18px rgba(0,245,255,.18);}
+.btn-primary:hover{background:linear-gradient(135deg,rgba(0,245,255,.22),rgba(168,85,247,.22));
+  box-shadow:0 0 28px rgba(0,245,255,.35);transform:translateY(-2px);}
+.btn-primary:disabled{opacity:.3;cursor:not-allowed;transform:none;}
+.btn-success{background:linear-gradient(135deg,rgba(0,255,136,.12),rgba(0,245,255,.08));
+  border:1px solid var(--green);color:var(--green);box-shadow:0 0 14px rgba(0,255,136,.18);}
+.btn-success:hover{box-shadow:0 0 24px rgba(0,255,136,.38);transform:translateY(-2px);}
+.btn-danger{background:linear-gradient(135deg,rgba(255,0,168,.12),rgba(168,85,247,.08));
+  border:1px solid var(--pink);color:var(--pink);}
+.btn-sm{font-size:10px;padding:9px 18px;letter-spacing:1.5px;}
+.btn-ghost{background:transparent;border:1px solid rgba(255,255,255,.15);
+  color:var(--dim);font-size:10px;padding:8px 16px;letter-spacing:1px;}
+.btn-ghost:hover{border-color:var(--cyan);color:var(--cyan);}
+
+/* ─────────────────────────────────────────────
+   HOMEPAGE (req #14-17)
+───────────────────────────────────────────── */
+#home-screen{justify-content:center;}
+.home-hero{text-align:center;margin-bottom:44px;}
+.home-cat-emoji{font-size:72px;display:block;margin-bottom:16px;
+  animation:floatCat 3s ease-in-out infinite;}
+@keyframes floatCat{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.home-tagline{font-family:'Share Tech Mono',monospace;font-size:13px;
+  color:var(--dim);max-width:460px;line-height:1.7;margin:12px auto 0;}
+.home-btns{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-top:32px;}
+.home-btn-card{cursor:pointer;border:1px solid rgba(0,245,255,.2);border-radius:14px;
+  padding:28px 32px;text-align:center;background:rgba(0,245,255,.03);
+  transition:all .3s;min-width:200px;flex:1;max-width:260px;}
+.home-btn-card:hover{border-color:var(--cyan);
+  box-shadow:0 0 24px rgba(0,245,255,.2);transform:translateY(-4px);}
+.home-btn-card .hbc-icon{font-size:40px;margin-bottom:14px;display:block;}
+.home-btn-card .hbc-title{font-family:'Orbitron',monospace;font-size:13px;
+  color:var(--cyan);letter-spacing:2px;margin-bottom:6px;}
+.home-btn-card .hbc-desc{font-family:'Share Tech Mono',monospace;font-size:11px;
+  color:var(--dim);line-height:1.5;}
+
+/* ─── Back button ─── */
+.back-btn{display:inline-flex;align-items:center;gap:8px;
+  font-family:'Share Tech Mono',monospace;font-size:12px;
+  color:var(--dim);cursor:pointer;padding:8px 0;
+  border:none;background:transparent;transition:color .2s;
+  margin-bottom:20px;align-self:flex-start;}
+.back-btn:hover{color:var(--cyan);}
+.back-btn::before{content:'←';font-size:16px;}
+
+/* ─────────────────────────────────────────────
+   REGISTRATION
+───────────────────────────────────────────── */
+.field-group{display:flex;flex-direction:column;gap:5px;margin-bottom:14px;}
+.field-label{font-family:'Share Tech Mono',monospace;font-size:11px;
+  letter-spacing:2px;color:var(--dim);text-transform:uppercase;
+  display:flex;align-items:center;gap:6px;}
+.req{color:var(--pink);font-size:13px;}
+.field-input{background:rgba(0,245,255,.03);border:1px solid rgba(0,245,255,.2);
+  border-radius:8px;padding:11px 15px;font-family:'Rajdhani',sans-serif;
+  font-size:15px;color:var(--text);outline:none;width:100%;transition:all .25s;}
+.field-input::placeholder{color:var(--dim);}
+.field-input:focus{border-color:var(--cyan);box-shadow:0 0 12px rgba(0,245,255,.12);
+  background:rgba(0,245,255,.04);}
+.field-input.valid{border-color:var(--green);}
+.field-input.invalid{border-color:var(--pink);}
+.field-hint{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--dim);min-height:15px;}
+.field-hint.ok{color:var(--green);}
+.field-hint.err{color:var(--pink);}
+.phone-row{display:flex;gap:8px;}
+.phone-prefix{background:rgba(0,245,255,.04);border:1px solid rgba(0,245,255,.2);
+  border-radius:8px;color:var(--dim);font-family:'Share Tech Mono',monospace;font-size:12px;
+  padding:11px 10px;outline:none;cursor:pointer;flex-shrink:0;width:92px;}
+.phone-prefix:focus{border-color:var(--cyan);}
+.email-row{display:flex;gap:8px;align-items:flex-start;}
+.email-row .field-input{flex:1;}
+.otp-btn{flex-shrink:0;font-family:'Orbitron',monospace;font-size:10px;letter-spacing:1px;
+  padding:11px 13px;border-radius:8px;border:1px solid var(--cyan);
+  background:rgba(0,245,255,.07);color:var(--cyan);cursor:pointer;
+  transition:all .25s;white-space:nowrap;}
+.otp-btn:hover:not(:disabled){background:rgba(0,245,255,.18);box-shadow:0 0 12px rgba(0,245,255,.3);}
+.otp-btn:disabled{opacity:.35;cursor:not-allowed;}
+.otp-section{display:none;margin:10px 0;}
+.otp-section.show{display:block;}
+.otp-row{display:flex;gap:8px;justify-content:center;margin:8px 0;}
+.otp-box{width:42px;height:50px;background:rgba(0,245,255,.03);
+  border:1px solid rgba(0,245,255,.25);border-radius:8px;
+  font-family:'Orbitron',monospace;font-size:20px;text-align:center;
+  color:var(--cyan);outline:none;transition:all .2s;}
+.otp-box:focus{border-color:var(--cyan);box-shadow:0 0 10px rgba(0,245,255,.28);}
+.otp-box.filled{border-color:var(--purple);background:rgba(168,85,247,.07);}
+.otp-box.verified{border-color:var(--green);background:rgba(0,255,136,.07);}
+.verify-badge{display:inline-flex;align-items:center;gap:6px;
+  font-family:'Share Tech Mono',monospace;font-size:12px;padding:5px 13px;
+  border-radius:20px;border:1px solid var(--green);color:var(--green);
+  background:rgba(0,255,136,.07);animation:vpop .4s cubic-bezier(.34,1.56,.64,1);}
+@keyframes vpop{from{transform:scale(.7);opacity:0}to{transform:scale(1);opacity:1}}
+.terms-row{display:flex;align-items:flex-start;gap:10px;margin:14px 0;cursor:pointer;}
+.terms-check{width:17px;height:17px;accent-color:var(--cyan);flex-shrink:0;margin-top:2px;}
+.terms-text{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--dim);line-height:1.5;}
+.reg-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 16px;}
+@media(max-width:540px){.reg-grid{grid-template-columns:1fr;}}
+
+/* ─────────────────────────────────────────────
+   HOW TO PLAY
+───────────────────────────────────────────── */
+#howtoplay-screen .panel{max-width:820px;max-height:82vh;overflow-y:auto;
+  scrollbar-width:thin;scrollbar-color:var(--purple) transparent;}
+#howtoplay-screen .panel::-webkit-scrollbar{width:4px;}
+#howtoplay-screen .panel::-webkit-scrollbar-thumb{background:var(--purple);border-radius:2px;}
+.rules-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:13px;margin-bottom:20px;}
+.rule-card{background:rgba(0,245,255,.02);border:1px solid rgba(0,245,255,.1);
+  border-radius:10px;padding:16px;position:relative;overflow:hidden;transition:border-color .3s;}
+.rule-card:hover{border-color:rgba(0,245,255,.28);}
+.rule-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
+  background:var(--ac,var(--cyan));border-radius:3px 0 0 3px;}
+.rule-num{font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;
+  color:var(--ac,var(--cyan));margin-bottom:5px;text-transform:uppercase;}
+.rule-title{font-family:'Orbitron',monospace;font-size:12px;color:var(--text);
+  margin-bottom:7px;display:flex;align-items:center;gap:8px;}
+.rule-body{font-size:13px;line-height:1.65;color:var(--dim);}
+.rule-body strong{color:var(--text);}
+.rule-body .hl{color:var(--ac,var(--cyan));font-family:'Share Tech Mono',monospace;font-size:12px;}
+.oxy-legend{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;}
+.oxy-chip{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.03);
+  border-radius:20px;padding:4px 11px;font-family:'Share Tech Mono',monospace;font-size:11px;}
+.oxy-dot{width:8px;height:8px;border-radius:50%;}
+.flow-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  justify-content:center;margin:14px 0;}
+.flow-box{background:rgba(0,245,255,.04);border:1px solid rgba(0,245,255,.18);
+  border-radius:8px;padding:7px 13px;font-family:'Share Tech Mono',monospace;
+  font-size:11px;color:var(--text);text-align:center;}
+.flow-arr{color:var(--cyan);font-size:18px;}
+.tip-banner{background:rgba(255,224,0,.05);border:1px solid rgba(255,224,0,.18);
+  border-radius:10px;padding:13px 16px;margin-bottom:14px;
+  font-family:'Share Tech Mono',monospace;font-size:12px;color:var(--yellow);line-height:1.6;}
+.tip-banner strong{color:#fff;}
+.scoring-table{width:100%;border-collapse:collapse;margin-top:7px;}
+.scoring-table th,.scoring-table td{padding:7px 11px;text-align:left;
+  font-family:'Share Tech Mono',monospace;font-size:12px;
+  border-bottom:1px solid rgba(255,255,255,.04);}
+.scoring-table th{color:var(--cyan);font-size:10px;letter-spacing:2px;
+  background:rgba(0,245,255,.04);}
+.scoring-table td{color:var(--dim);}
+.scoring-table td:first-child{color:var(--text);}
+.pos{color:var(--green)!important;}.neg{color:var(--pink)!important;}
+
+/* ─────────────────────────────────────────────
+   SUBJECT & CAT SELECT
+───────────────────────────────────────────── */
+.subject-grid{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-bottom:28px;}
+.subject-card{cursor:pointer;border:1px solid rgba(0,245,255,.18);border-radius:12px;
+  padding:22px 18px;text-align:center;background:rgba(0,245,255,.03);
+  transition:all .3s;flex:1;min-width:140px;max-width:190px;position:relative;overflow:hidden;}
+.subject-card:hover,.subject-card.selected{border-color:var(--cyan);
+  box-shadow:0 0 18px rgba(0,245,255,.18);transform:translateY(-3px);}
+.subject-card.selected{border-color:var(--green);box-shadow:0 0 18px rgba(0,255,136,.25);}
+.subject-icon{font-size:38px;margin-bottom:10px;display:block;}
+.subject-name{font-family:'Orbitron',monospace;font-size:11px;letter-spacing:2px;color:var(--cyan);}
+.cat-grid{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-bottom:28px;}
+.cat-card{cursor:pointer;border:1px solid rgba(168,85,247,.18);border-radius:12px;
+  padding:18px 14px;text-align:center;background:rgba(168,85,247,.03);
+  transition:all .3s;min-width:115px;}
+.cat-card:hover,.cat-card.selected{border-color:var(--purple);
+  box-shadow:0 0 18px rgba(168,85,247,.28);transform:translateY(-3px);}
+.cat-card.selected{border-color:var(--pink);box-shadow:0 0 18px rgba(255,0,168,.35);
+  background:rgba(255,0,168,.04);}
+.cat-svg{width:60px;height:60px;margin:0 auto 8px;display:block;}
+.cat-name{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--purple);}
+.cat-year-lbl{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--dim);margin-top:3px;}
+
+/* ─────────────────────────────────────────────
+   GAME SCREEN
+───────────────────────────────────────────── */
+#game-screen{padding:12px 12px 70px;justify-content:flex-start;align-items:center;}
+.game-header{width:100%;max-width:1120px;display:flex;align-items:center;
+  justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;
+  background:rgba(10,10,31,.85);border:1px solid rgba(0,245,255,.12);
+  border-radius:12px;padding:12px 18px;backdrop-filter:blur(10px);}
+.hud-item{display:flex;flex-direction:column;align-items:center;}
+.hud-label{font-family:'Share Tech Mono',monospace;font-size:9px;
+  letter-spacing:2px;color:var(--dim);text-transform:uppercase;}
+.hud-value{font-family:'Orbitron',monospace;font-size:18px;color:var(--cyan);}
+.hud-name{font-family:'Share Tech Mono',monospace;font-size:12px;color:var(--text);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px;}
+
+/* Oxygen bar */
+.oxy-container{flex:1;min-width:180px;max-width:360px;}
+.oxy-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;}
+.oxy-lbl{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--dim);}
+.oxy-pct{font-family:'Orbitron',monospace;font-size:15px;color:var(--green);transition:color .5s;}
+.oxy-pct.warn{color:var(--yellow)!important;}.oxy-pct.crit{color:var(--pink)!important;}
+.oxy-bar{height:9px;background:rgba(255,255,255,.04);border-radius:5px;overflow:hidden;
+  border:1px solid rgba(0,255,136,.18);}
+.oxy-fill{height:100%;background:linear-gradient(to right,var(--green),var(--cyan));
+  border-radius:5px;transition:width .6s ease,background .5s;position:relative;}
+.oxy-fill.warn{background:linear-gradient(to right,var(--yellow),#ff8800)!important;}
+.oxy-fill.crit{background:linear-gradient(to right,var(--pink),#ff4400)!important;}
+.oxy-fill::after{content:'';position:absolute;top:0;right:0;width:18px;height:100%;
+  background:rgba(255,255,255,.3);filter:blur(3px);
+  animation:oxySh 2s ease-in-out infinite;}
+@keyframes oxySh{0%,100%{opacity:.5}50%{opacity:1}}
+
+/* Timer ring */
+.cat-timer{display:flex;flex-direction:column;align-items:center;}
+.timer-ring-wrap{width:50px;height:50px;position:relative;}
+.timer-ring-wrap svg{transform:rotate(-90deg);}
+.timer-ring-wrap circle{fill:none;stroke-width:4;stroke-linecap:round;}
+.tr-bg{stroke:rgba(0,245,255,.1);}
+.tr-fg{stroke:var(--cyan);stroke-dasharray:132;stroke-dashoffset:0;
+  transition:stroke-dashoffset 1s linear;filter:drop-shadow(0 0 4px var(--cyan));}
+.timer-center{position:absolute;inset:0;display:flex;align-items:center;
+  justify-content:center;font-family:'Orbitron',monospace;font-size:13px;color:var(--cyan);}
+
+/* Q-progress */
+.qprog-bar{height:4px;background:rgba(255,255,255,.05);border-radius:2px;
+  overflow:hidden;margin-top:4px;width:100%;}
+.qprog-fill{height:100%;background:linear-gradient(to right,var(--purple),var(--cyan));
+  border-radius:2px;transition:width .4s ease;}
+
+/* Game main */
+.game-main{width:100%;max-width:1120px;display:flex;gap:14px;flex-wrap:wrap;flex:1;}
+.grid-container{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;}
+.box-grid{display:grid;gap:var(--gap);}
+
+/* Box */
+.box{width:var(--box);height:var(--box);border-radius:9px;
+  border:1px solid rgba(0,245,255,.13);background:rgba(0,245,255,.025);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+  position:relative;transition:transform .2s,box-shadow .2s;overflow:hidden;
+  animation:qShimmer 3s ease-in-out infinite;
+  animation-delay:calc(var(--i) * .08s);}
+.box::before{content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,transparent 30%,rgba(0,245,255,.05) 50%,transparent 70%);
+  transform:translateX(-100%);animation:shimSlide 3s ease-in-out infinite;
+  animation-delay:calc(var(--i) * .12s);}
+@keyframes qShimmer{0%,100%{border-color:rgba(0,245,255,.13)}50%{border-color:rgba(0,245,255,.32);box-shadow:0 0 10px rgba(0,245,255,.07)}}
+@keyframes shimSlide{0%{transform:translateX(-100%)}60%,100%{transform:translateX(100%)}}
+.box:hover:not(.opened):not(.cat-found){transform:scale(1.06);
+  border-color:var(--cyan);box-shadow:0 0 18px rgba(0,245,255,.22);z-index:2;}
+.box.opened{cursor:default;animation:none;opacity:.3;border-color:rgba(255,255,255,.04);}
+.box.cat-found{border-color:var(--green)!important;
+  box-shadow:0 0 28px rgba(0,255,136,.5)!important;
+  animation:catGlow .5s ease-in-out infinite alternate!important;
+  background:rgba(0,255,136,.08)!important;cursor:default;}
+@keyframes catGlow{from{box-shadow:0 0 18px rgba(0,255,136,.4)}to{box-shadow:0 0 38px rgba(0,255,136,.8)}}
+.box.flash-wrong{animation:wFlash .4s ease!important;}
+@keyframes wFlash{0%,100%{transform:scale(1)}25%{transform:scale(1.08) rotate(-2deg)}75%{transform:scale(.95) rotate(2deg)}}
+.box-num{font-family:'Share Tech Mono',monospace;font-size:13px;
+  color:rgba(0,245,255,.45);user-select:none;}
+.box-cat{font-size:30px;animation:catBounce 1s ease-in-out infinite;display:none;}
+@keyframes catBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+
+/* Right panel */
+.right-panel{flex:1;min-width:270px;display:flex;flex-direction:column;gap:12px;}
+
+/* Question card */
+.q-card{background:rgba(10,10,31,.92);border:1px solid rgba(168,85,247,.28);
+  border-radius:12px;padding:18px;display:none;flex-direction:column;gap:11px;
+  box-shadow:0 0 28px rgba(168,85,247,.08);}
+.q-card.visible{display:flex;}
+.q-header{display:flex;justify-content:space-between;align-items:center;
+  padding-bottom:10px;border-bottom:1px solid rgba(168,85,247,.18);}
+.q-badge{font-family:'Orbitron',monospace;font-size:10px;letter-spacing:2px;
+  padding:4px 10px;border-radius:20px;background:rgba(168,85,247,.13);
+  border:1px solid rgba(168,85,247,.35);color:var(--purple);}
+.q-meta{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--dim);}
+.q-text{font-size:14px;line-height:1.65;color:var(--text);}
+.q-type-badge{font-family:'Share Tech Mono',monospace;font-size:10px;
+  color:var(--yellow);padding:2px 8px;border:1px solid rgba(255,224,0,.25);
+  border-radius:4px;display:inline-block;margin-bottom:6px;}
+.options-list{display:flex;flex-direction:column;gap:7px;}
+.opt-btn{text-align:left;background:rgba(0,245,255,.02);
+  border:1px solid rgba(0,245,255,.13);border-radius:8px;
+  padding:10px 14px;cursor:pointer;font-family:'Rajdhani',sans-serif;
+  font-size:14px;color:var(--text);transition:all .2s;
+  display:flex;align-items:flex-start;gap:9px;}
+.opt-btn:hover:not(:disabled){border-color:var(--cyan);
+  background:rgba(0,245,255,.05);transform:translateX(3px);}
+.opt-btn.correct-opt{border-color:var(--green)!important;
+  background:rgba(0,255,136,.08)!important;color:var(--green)!important;}
+.opt-btn.wrong-opt{border-color:var(--pink)!important;
+  background:rgba(255,0,168,.06)!important;color:var(--pink)!important;}
+.opt-btn.selected-opt{border-color:var(--purple)!important;
+  background:rgba(168,85,247,.08)!important;}
+.opt-btn:disabled{cursor:default;}
+.opt-lbl{font-family:'Orbitron',monospace;font-size:10px;color:var(--cyan);
+  flex-shrink:0;margin-top:1px;}
+/* Multi-select checkboxes */
+.opt-check{width:15px;height:15px;accent-color:var(--purple);flex-shrink:0;margin-top:2px;}
+.multi-submit-row{display:flex;justify-content:flex-end;margin-top:4px;}
+.feedback-msg{padding:9px 13px;border-radius:8px;
+  font-family:'Share Tech Mono',monospace;font-size:12px;display:none;line-height:1.5;}
+.feedback-msg.show{display:block;}
+.feedback-msg.fb-ok{background:rgba(0,255,136,.08);
+  border:1px solid rgba(0,255,136,.25);color:var(--green);}
+.feedback-msg.fb-bad{background:rgba(255,0,168,.06);
+  border:1px solid rgba(255,0,168,.25);color:var(--pink);}
+
+/* Scratchpad */
+.scratch-card{background:rgba(10,10,31,.92);border:1px solid rgba(0,245,255,.13);
+  border-radius:12px;padding:14px;display:none;flex-direction:column;gap:9px;}
+.scratch-card.visible{display:flex;}
+.tab-row{display:flex;gap:6px;margin-bottom:2px;}
+.tab-btn{font-family:'Share Tech Mono',monospace;font-size:11px;
+  padding:6px 12px;border-radius:6px;border:1px solid rgba(0,245,255,.18);
+  background:rgba(0,245,255,.04);color:var(--dim);cursor:pointer;transition:all .2s;}
+.tab-btn.active-tab{border-color:var(--cyan);color:var(--cyan);background:rgba(0,245,255,.1);}
+#scratch-canvas{width:100%;background:rgba(255,255,255,.025);
+  border:1px dashed rgba(0,245,255,.18);border-radius:8px;
+  cursor:crosshair;touch-action:none;}
+.scratch-tools{display:flex;gap:7px;flex-wrap:wrap;align-items:center;}
+.swatch{width:20px;height:20px;border-radius:50%;border:2px solid transparent;
+  cursor:pointer;transition:transform .2s;}
+.swatch:hover,.swatch.on{transform:scale(1.3);border-color:#fff;}
+.brush-inp{font-family:'Share Tech Mono',monospace;font-size:11px;
+  background:rgba(0,245,255,.04);border:1px solid rgba(0,245,255,.18);
+  border-radius:6px;color:var(--cyan);padding:4px 7px;width:55px;}
+.stool{font-family:'Share Tech Mono',monospace;font-size:10px;
+  padding:5px 11px;border-radius:6px;border:1px solid rgba(0,245,255,.18);
+  background:rgba(0,245,255,.04);color:var(--cyan);cursor:pointer;transition:all .2s;}
+.stool:hover{background:rgba(0,245,255,.14);}
+#scratch-text{width:100%;min-height:170px;background:rgba(0,245,255,.025);
+  border:1px dashed rgba(0,245,255,.18);border-radius:8px;padding:11px;
+  font-family:'Share Tech Mono',monospace;font-size:13px;color:var(--text);
+  resize:vertical;outline:none;line-height:1.6;}
+.upload-zone{border:1px dashed rgba(0,245,255,.28);border-radius:8px;
+  padding:18px;text-align:center;cursor:pointer;transition:all .2s;min-height:100px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;}
+.upload-zone:hover{background:rgba(0,245,255,.04);border-color:var(--cyan);}
+.upload-zone .uz-icon{font-size:28px;}
+.upload-zone .uz-label{font-family:'Share Tech Mono',monospace;font-size:12px;color:var(--dim);}
+#proof-file{display:none;}
+.keep-link{display:inline-flex;align-items:center;gap:7px;
+  background:rgba(255,224,0,.07);border:1px solid rgba(255,224,0,.25);
+  border-radius:8px;padding:8px 14px;color:var(--yellow);
+  font-family:'Share Tech Mono',monospace;font-size:12px;
+  text-decoration:none;transition:all .2s;width:fit-content;margin-top:2px;}
+.keep-link:hover{background:rgba(255,224,0,.14);box-shadow:0 0 12px rgba(255,224,0,.18);}
+
+/* Stats chip */
+.stat-chip{background:rgba(0,245,255,.04);border:1px solid rgba(0,245,255,.12);
+  border-radius:20px;padding:5px 14px;font-family:'Share Tech Mono',monospace;
+  font-size:11px;color:var(--dim);display:flex;align-items:center;gap:5px;}
+.stat-chip span{color:var(--cyan);font-size:13px;}
+
+/* Overlays */
+.overlay{position:fixed;inset:0;z-index:100;background:rgba(5,5,16,.9);
+  display:none;align-items:center;justify-content:center;backdrop-filter:blur(8px);}
+.overlay.show{display:flex;}
+.ov-card{background:rgba(10,10,31,.97);border-radius:18px;padding:36px;
+  text-align:center;max-width:460px;width:90%;
+  animation:ovIn .4s cubic-bezier(.34,1.56,.64,1);}
+@keyframes ovIn{from{transform:scale(.7);opacity:0}to{transform:scale(1);opacity:1}}
+.ov-icon{font-size:68px;margin-bottom:14px;}
+.ov-title{font-family:'Orbitron',monospace;font-size:26px;font-weight:900;margin-bottom:10px;}
+.ov-title.win{background:linear-gradient(135deg,var(--green),var(--cyan));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.ov-title.lose{background:linear-gradient(135deg,var(--pink),var(--purple));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.ov-body{font-size:14px;color:var(--dim);line-height:1.6;margin-bottom:24px;}
+.ov-btns{display:flex;gap:11px;justify-content:center;flex-wrap:wrap;}
+
+/* Notifications */
+#notifs{position:fixed;top:18px;right:18px;z-index:200;
+  display:flex;flex-direction:column;gap:7px;pointer-events:none;}
+.notif{background:rgba(10,10,31,.97);border-radius:9px;
+  padding:10px 16px;font-family:'Share Tech Mono',monospace;font-size:12px;
+  backdrop-filter:blur(10px);pointer-events:auto;max-width:260px;
+  animation:nIn .3s ease,nOut .3s ease 2.7s forwards;}
+.notif.good{border:1px solid var(--green);color:var(--green);}
+.notif.bad{border:1px solid var(--pink);color:var(--pink);}
+.notif.info{border:1px solid var(--cyan);color:var(--cyan);}
+@keyframes nIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes nOut{from{opacity:1}to{opacity:0;transform:translateX(100%)}}
+
+/* Responsive */
+@media(max-width:600px){
+  :root{--box:50px;--gap:5px;}
+  .panel{padding:18px 14px;}
+  .game-main{flex-direction:column;}
+  .home-btn-card{min-width:150px;}
+  .reg-grid{grid-template-columns:1fr;}
+}
+
+/* OTP countdown */
+.cd-txt{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--dim);margin-top:4px;}
+.cd-txt span{color:var(--yellow);}
+</style>
+</head>
+<body>
+<div id="sf"></div>
+<div id="notifs"></div>
+
+<!-- ═══════════════════════════════════════════
+     SHARED FOOTER TEMPLATE (injected by JS)
+═══════════════════════════════════════════ -->
+<template id="footer-tpl">
+  <footer class="page-footer">
+    🌐 <a href="https://sites.google.com/view/schrodingersstudent/initiatives" target="_blank" rel="noopener">sites.google.com/view/schrodingersstudent/initiatives</a>
+    &nbsp;|&nbsp;
+    ✉️ <a href="mailto:theeasyresearcher@gmail.com">theeasyresearcher@gmail.com</a>
+  </footer>
+</template>
+
+<!-- ═══════════════════════════════════════════
+     1. HOMEPAGE
+═══════════════════════════════════════════ -->
+<div id="home-screen" class="screen centered active">
+  <div class="home-hero">
+    <span class="home-cat-emoji">🐱</span>
+    <div class="gtitle">Schrödinger's Rescue</div>
+    <div class="gsubtitle">THE QUANTUM GATE CHALLENGE</div>
+    <div class="home-tagline">
+      The cat is trapped inside one of 20 quantum boxes — alive, dead, or somewhere in between.
+      Use your GATE knowledge to rescue it before the oxygen runs out.
+    </div>
+  </div>
+  <div class="home-btns">
+    <div class="home-btn-card" onclick="showScreen('register-screen')">
+      <span class="hbc-icon">🚀</span>
+      <div class="hbc-title">PLAY GAME</div>
+      <div class="hbc-desc">Register &amp; start your quantum rescue mission</div>
+    </div>
+    <div class="home-btn-card" onclick="showScreen('howtoplay-screen')">
+      <span class="hbc-icon">📖</span>
+      <div class="hbc-title">MISSION BRIEFING</div>
+      <div class="hbc-desc">Read the rules &amp; understand the game mechanics</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     2. HOW TO PLAY
+═══════════════════════════════════════════ -->
+<div id="howtoplay-screen" class="screen">
+  <button class="back-btn" onclick="showScreen('home-screen')">Back to Home</button>
+  <div class="gtitle" style="margin-bottom:4px">Mission Briefing</div>
+  <div class="gsubtitle">OPERATIVE MANUAL</div>
+
+  <div class="panel">
+    <div class="tip-banner">
+      ⚡ <strong>OBJECTIVE:</strong> Schrödinger's cat is hidden in one of 20 quantum boxes.
+      Open boxes to find it — but beware, wrong boxes trigger GATE questions.
+      Answer questions correctly to gain oxygen. Find the cat before your oxygen runs out!
+    </div>
+
+    <div class="section-title">Game Flow</div>
+    <div class="flow-row">
+      <div class="flow-box">Home</div><div class="flow-arr">→</div>
+      <div class="flow-box">Register</div><div class="flow-arr">→</div>
+      <div class="flow-box">Choose Subject</div><div class="flow-arr">→</div>
+      <div class="flow-box">Choose Cat</div><div class="flow-arr">→</div>
+      <div class="flow-box">Open Boxes</div><div class="flow-arr">→</div>
+      <div class="flow-box">Rescue 🐱</div>
+    </div>
+
+    <div class="rules-grid">
+      <div class="rule-card" style="--ac:var(--cyan)">
+        <div class="rule-num">Rule 01</div>
+        <div class="rule-title">📦 The Box Grid</div>
+        <div class="rule-body">
+          A <strong>4×5 grid of 20 boxes</strong>. One hides the cat — the rest hold GATE questions.
+          You cannot see which box the cat is in (quantum superposition).<br><br>
+          <span class="hl">✓ Cat Box → Instant Level Win!</span><br>
+          <span class="hl">✗ Wrong Box → Question appears (no oxygen loss from opening)</span>
+        </div>
+      </div>
+      <div class="rule-card" style="--ac:var(--green)">
+        <div class="rule-num">Rule 02</div>
+        <div class="rule-title">🌬️ Oxygen System</div>
+        <div class="rule-body">
+          Starts at <strong>100% O₂</strong>. Opening a wrong box does <strong>NOT</strong> reduce oxygen.
+          <div class="oxy-legend" style="margin-top:8px">
+            <div class="oxy-chip"><div class="oxy-dot" style="background:var(--pink)"></div>Wrong answer: <strong style="color:var(--pink)">−5%</strong></div>
+            <div class="oxy-chip"><div class="oxy-dot" style="background:var(--green)"></div>Correct answer: <strong style="color:var(--green)">+10%</strong></div>
+            <div class="oxy-chip"><div class="oxy-dot" style="background:var(--cyan)"></div>Upload proof: <strong style="color:var(--cyan)">+25%</strong></div>
+          </div><br>
+          O₂ is capped at <strong>100%</strong>. Reach <strong>0%</strong> → game over!
+        </div>
+      </div>
+      <div class="rule-card" style="--ac:var(--purple)">
+        <div class="rule-num">Rule 03</div>
+        <div class="rule-title">🐾 Cat Movement</div>
+        <div class="rule-body">
+          Every <strong>60 seconds</strong>, the cat moves to an adjacent box (horizontal/vertical).
+          It will never move into an already-opened box.<br><br>
+          <span class="hl">⚠ Plan quickly — the cat is always moving!</span><br><br>
+          When you upload proof for a question, the cat returns to its previous position.
+        </div>
+      </div>
+      <div class="rule-card" style="--ac:var(--pink)">
+        <div class="rule-num">Rule 04</div>
+        <div class="rule-title">🧠 GATE Questions</div>
+        <div class="rule-body">
+          <strong>55 subject-based questions</strong> per session (GATE 2021–2025, no General Aptitude).
+          Questions are <strong>randomised</strong> each session. You must answer every question — unanswered questions will loop back until correct.<br><br>
+          <span class="hl">You must answer before opening the next box.</span>
+        </div>
+      </div>
+      <div class="rule-card" style="--ac:var(--yellow)">
+        <div class="rule-num">Rule 05</div>
+        <div class="rule-title">✅ Multi-Answer Questions</div>
+        <div class="rule-body">
+          Some questions accept <strong>multiple correct answers</strong>. If you select
+          <strong>even one correct option</strong>, the answer is treated as correct.<br><br>
+          After answering, <strong>all correct answers</strong> are highlighted so you can learn the full solution.
+        </div>
+      </div>
+      <div class="rule-card" style="--ac:var(--cyan)">
+        <div class="rule-num">Rule 06</div>
+        <div class="rule-title">📤 Upload Proof</div>
+        <div class="rule-body">
+          Use the Scratchpad to work out your answer — draw, type notes, or upload an image/PDF as proof.<br><br>
+          <span class="hl">Uploading a file adds +25% O₂ and returns the cat to its previous box.</span><br><br>
+          Tap "Open Google Keep" to use Keep for longer notes.
+        </div>
+      </div>
+      <div class="rule-card" style="--ac:var(--green)">
+        <div class="rule-num">Rule 07</div>
+        <div class="rule-title">💾 Auto-Save</div>
+        <div class="rule-body">
+          The game saves your subject, cat, oxygen, level, and questions answered to local storage after every action.<br><br>
+          Close and return? You'll be offered to <strong>Resume</strong> exactly where you left off.<br><br>
+          <span class="hl">Note: Clearing browser data erases saved progress.</span>
+        </div>
+      </div>
+      <div class="rule-card" style="--ac:var(--purple)">
+        <div class="rule-num">Rule 08</div>
+        <div class="rule-title">🐱 Cat Companions & GATE Years</div>
+        <div class="rule-body">
+          Each cat is linked to a specific GATE exam year:<br><br>
+          <div style="display:flex;flex-direction:column;gap:5px;margin:6px 0">
+            <span style="color:var(--cyan);font-family:'Share Tech Mono',monospace;font-size:11px">QUBIT &nbsp;&nbsp;&nbsp;→ GATE 2025</span>
+            <span style="color:var(--purple);font-family:'Share Tech Mono',monospace;font-size:11px">PURRTON → GATE 2024</span>
+            <span style="color:var(--green);font-family:'Share Tech Mono',monospace;font-size:11px">WAVEY &nbsp;&nbsp;→ GATE 2023</span>
+            <span style="color:var(--pink);font-family:'Share Tech Mono',monospace;font-size:11px">ENTANGLE→ GATE 2022</span>
+            <span style="color:var(--yellow);font-family:'Share Tech Mono',monospace;font-size:11px">TENSOR &nbsp;→ GATE 2021</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <table class="scoring-table" style="margin-bottom:14px">
+      <thead><tr><th>Event</th><th>O₂ Change</th></tr></thead>
+      <tbody>
+        <tr><td>Open wrong box</td><td>No change</td></tr>
+        <tr><td>Correct answer</td><td class="pos">+10%</td></tr>
+        <tr><td>Wrong answer</td><td class="neg">−5%</td></tr>
+        <tr><td>Upload proof</td><td class="pos">+25% &amp; cat returns</td></tr>
+        <tr><td>Cat found</td><td class="pos">Level complete!</td></tr>
+        <tr><td>O₂ = 0%</td><td class="neg">Game Over</td></tr>
+      </tbody>
+    </table>
+
+    <div class="tip-banner" style="margin-bottom:0">
+      💡 <strong>PRO TIPS:</strong> Opening boxes doesn't cost oxygen — so explore freely!
+      Answer questions correctly to build O₂. Upload proof for any tough question to get a 25% oxygen boost and reposition the cat.
+    </div>
+
+    <div style="display:flex;gap:12px;justify-content:center;margin-top:22px;flex-wrap:wrap">
+      <button class="btn btn-primary" onclick="showScreen('register-screen')">REGISTER TO PLAY →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     3. REGISTRATION (req #19)
+═══════════════════════════════════════════ -->
+<div id="register-screen" class="screen">
+  <button class="back-btn" onclick="showScreen('home-screen')">Back to Home</button>
+  <div class="gtitle" style="margin-bottom:4px">Player Registration</div>
+  <div class="gsubtitle">QUANTUM GATE CHALLENGE — IDENTITY VERIFICATION</div>
+
+  <div class="panel">
+    <div class="section-title">Player Identity</div>
+
+    <div class="reg-grid">
+      <div class="field-group">
+        <div class="field-label">Full Name <span class="req">*</span></div>
+        <input type="text" class="field-input" id="reg-name" placeholder="e.g. Bebeto G N" oninput="vName()">
+        <div class="field-hint" id="h-name"></div>
+      </div>
+      <div class="field-group">
+        <div class="field-label">Institute Name <span class="req">*</span></div>
+        <input type="text" class="field-input" id="reg-inst" placeholder="e.g. Schrodinger's Student" oninput="vInst()">
+        <div class="field-hint" id="h-inst"></div>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <div class="field-label">Contact Number <span class="req">*</span></div>
+      <div class="phone-row">
+        <select class="phone-prefix" id="phone-pfx">
+          <option value="+91">🇮🇳 +91</option>
+          <option value="+1">🇺🇸 +1</option>
+          <option value="+44">🇬🇧 +44</option>
+          <option value="+61">🇦🇺 +61</option>
+          <option value="+65">🇸🇬 +65</option>
+          <option value="+971">🇦🇪 +971</option>
+        </select>
+        <input type="tel" class="field-input" id="reg-phone" placeholder="8606512587" maxlength="12" oninput="vPhone()">
+      </div>
+      <div class="field-hint" id="h-phone"></div>
+    </div>
+
+    <div class="field-group">
+      <div class="field-label">Email Address <span class="req">*</span></div>
+      <div class="email-row">
+        <input type="email" class="field-input" id="reg-email" placeholder="you@example.com" oninput="vEmail()">
+        <button class="otp-btn" id="otp-send-btn" onclick="sendOTP()" disabled>SEND OTP</button>
+      </div>
+      <div class="field-hint" id="h-email"></div>
+    </div>
+
+    <div class="otp-section" id="otp-sect">
+      <div class="field-label" style="margin-bottom:8px">6-Digit OTP <span class="req">*</span></div>
+      <div class="otp-row">
+        <input class="otp-box" type="text" maxlength="1" id="o0" oninput="oIn(0)" onkeydown="oKey(event,0)">
+        <input class="otp-box" type="text" maxlength="1" id="o1" oninput="oIn(1)" onkeydown="oKey(event,1)">
+        <input class="otp-box" type="text" maxlength="1" id="o2" oninput="oIn(2)" onkeydown="oKey(event,2)">
+        <input class="otp-box" type="text" maxlength="1" id="o3" oninput="oIn(3)" onkeydown="oKey(event,3)">
+        <input class="otp-box" type="text" maxlength="1" id="o4" oninput="oIn(4)" onkeydown="oKey(event,4)">
+        <input class="otp-box" type="text" maxlength="1" id="o5" oninput="oIn(5)" onkeydown="oKey(event,5)">
+      </div>
+      <div style="text-align:center;margin-top:6px">
+        <div id="otp-ok" style="display:none"><span class="verify-badge">✓ EMAIL VERIFIED</span></div>
+        <div class="field-hint" id="h-otp" style="text-align:center"></div>
+        <div class="cd-txt" id="otp-cd" style="display:none">Resend in <span id="otp-sec">60</span>s</div>
+        <button class="otp-btn" id="otp-resend" style="display:none;margin-top:8px" onclick="sendOTP()">RESEND OTP</button>
+      </div>
+    </div>
+
+    <div class="terms-row">
+      <input type="checkbox" class="terms-check" id="terms" onchange="checkReg()">
+      <label for="terms" class="terms-text">
+        I confirm the information is accurate. I agree to participate fairly and understand this is an educational GATE preparation tool.
+      </label>
+    </div>
+
+    <div style="text-align:center;margin-top:10px">
+      <button class="btn btn-primary" id="reg-go-btn" onclick="doRegister()" disabled>
+        PROCEED TO SUBJECT SELECT →
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     4. SUBJECT SELECT
+═══════════════════════════════════════════ -->
+<div id="subject-screen" class="screen centered">
+  <button class="back-btn" onclick="showScreen('register-screen')">Back to Registration</button>
+  <div class="gtitle">Choose Your Domain</div>
+  <div class="gsubtitle">PICK YOUR GATE SUBJECT</div>
+  <div class="panel">
+    <div class="section-title">Select Subject</div>
+    <div class="subject-grid">
+      <div class="subject-card" data-sub="Physics" onclick="selSub(this)">
+        <span class="subject-icon">⚛️</span>
+        <div class="subject-name">PHYSICS</div>
+      </div>
+      <div class="subject-card" data-sub="Chemistry" onclick="selSub(this)">
+        <span class="subject-icon">🧪</span>
+        <div class="subject-name">CHEMISTRY</div>
+      </div>
+      <div class="subject-card" data-sub="Mathematics" onclick="selSub(this)">
+        <span class="subject-icon">∑</span>
+        <div class="subject-name">MATHEMATICS</div>
+      </div>
+    </div>
+    <div style="text-align:center">
+      <button class="btn btn-primary" id="sub-next-btn" onclick="showScreen('cat-screen')" disabled>
+        SELECT CAT COMPANION →
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     5. CAT SELECT
+═══════════════════════════════════════════ -->
+<div id="cat-screen" class="screen centered">
+  <button class="back-btn" onclick="showScreen('subject-screen')">Back to Subject</button>
+  <div class="gtitle">Choose Your Companion</div>
+  <div class="gsubtitle">THE CAT THAT MAY OR MAY NOT BE THERE</div>
+  <div class="panel">
+    <div class="section-title">Select Cat Entity</div>
+    <div class="cat-grid" id="cat-grid"></div>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+      <button class="btn btn-primary" id="cat-next-btn" onclick="startGame()" disabled>
+        COLLAPSE THE WAVEFUNCTION →
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     6. GAME SCREEN
+═══════════════════════════════════════════ -->
+<div id="game-screen" class="screen">
+  <div class="game-header">
+    <div class="hud-item">
+      <div class="hud-label">Level</div>
+      <div class="hud-value" id="hud-level">01</div>
+    </div>
+
+    <div class="oxy-container">
+      <div class="oxy-header">
+        <div class="oxy-lbl">⬡ O₂ INTEGRITY</div>
+        <div class="oxy-pct" id="oxy-pct">100%</div>
+      </div>
+      <div class="oxy-bar"><div class="oxy-fill" id="oxy-fill" style="width:100%"></div></div>
+      <div class="qprog-bar"><div class="qprog-fill" id="q-prog" style="width:0%"></div></div>
+    </div>
+
+    <div class="cat-timer">
+      <div class="timer-ring-wrap">
+        <svg width="50" height="50" viewBox="0 0 50 50">
+          <circle class="tr-bg" cx="25" cy="25" r="21"/>
+          <circle class="tr-fg" id="timer-ring" cx="25" cy="25" r="21" stroke-dasharray="132" stroke-dashoffset="0"/>
+        </svg>
+        <div class="timer-center" id="timer-txt">60</div>
+      </div>
+      <div class="hud-label" style="margin-top:3px">CAT MOVE</div>
+    </div>
+
+    <div class="hud-item">
+      <div class="hud-label">Q Answered</div>
+      <div class="hud-value" id="hud-solved">0/55</div>
+    </div>
+
+    <div class="hud-item">
+      <div class="hud-name" id="hud-player">—</div>
+      <div class="hud-label" id="hud-inst">—</div>
+    </div>
+
+    <button class="btn btn-ghost btn-sm" onclick="confirmQuit()">✕ QUIT</button>
+  </div>
+
+  <div class="game-main">
+    <div class="grid-container">
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">
+        <div class="stat-chip">Subject: <span id="stat-sub">—</span></div>
+        <div class="stat-chip">Cat: <span id="stat-cat">—</span></div>
+      </div>
+      <div class="box-grid" id="box-grid"></div>
+      <div style="margin-top:10px;font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--dim);text-align:center">
+        ☞ CLICK A BOX TO OBSERVE ITS STATE
+      </div>
+    </div>
+
+    <div class="right-panel">
+      <div class="q-card" id="q-card">
+        <div class="q-header">
+          <div class="q-badge" id="q-badge">Q —</div>
+          <div class="q-meta" id="q-meta"></div>
+        </div>
+        <div id="q-type-row"></div>
+        <div class="q-text" id="q-text"></div>
+        <div class="options-list" id="opt-list"></div>
+        <div id="multi-submit-row" style="display:none;justify-content:flex-end;margin-top:4px">
+          <button class="btn btn-success btn-sm" onclick="submitMulti()">SUBMIT SELECTION</button>
+        </div>
+        <div class="feedback-msg" id="feedback"></div>
+      </div>
+
+      <div class="scratch-card" id="scratch-card">
+        <div class="section-title" style="margin-bottom:0">Scratchpad</div>
+        <div class="tab-row">
+          <button class="tab-btn active-tab" id="tab-draw" onclick="switchTab('draw')">✏️ DRAW</button>
+          <button class="tab-btn" id="tab-type" onclick="switchTab('type')">⌨️ TYPE</button>
+          <button class="tab-btn" id="tab-up" onclick="switchTab('up')">📎 UPLOAD</button>
+        </div>
+        <div id="panel-draw">
+          <div class="scratch-tools">
+            <div class="swatch on" style="background:#00f5ff" data-c="#00f5ff" onclick="setPen(this)"></div>
+            <div class="swatch" style="background:#ff00a8" data-c="#ff00a8" onclick="setPen(this)"></div>
+            <div class="swatch" style="background:#00ff88" data-c="#00ff88" onclick="setPen(this)"></div>
+            <div class="swatch" style="background:#ffe000" data-c="#ffe000" onclick="setPen(this)"></div>
+            <div class="swatch" style="background:#fff" data-c="#ffffff" onclick="setPen(this)"></div>
+            <input type="number" class="brush-inp" id="brush-sz" value="2" min="1" max="20">
+            <button class="stool" onclick="clearCanvas()">CLEAR</button>
+            <button class="stool" onclick="dlCanvas()">⬇ SAVE</button>
+          </div>
+          <canvas id="scratch-canvas" width="400" height="190"></canvas>
+        </div>
+        <div id="panel-type" style="display:none">
+          <textarea id="scratch-text" placeholder="Type equations, working, notes…&#10;e.g. E=hν, ΔG=ΔH-TΔS"></textarea>
+          <div style="display:flex;gap:7px;margin-top:6px;flex-wrap:wrap">
+            <button class="stool" onclick="copyNotes()">📋 COPY</button>
+            <button class="stool" onclick="dlNotes()">⬇ SAVE .TXT</button>
+            <button class="stool" onclick="clearNotes()">CLEAR</button>
+          </div>
+        </div>
+        <div id="panel-up" style="display:none">
+          <div class="upload-zone" onclick="document.getElementById('proof-file').click()">
+            <div class="uz-icon">📎</div>
+            <div class="uz-label">Click to upload Final Proof<br><small style="font-size:10px">Image (PNG/JPG) or PDF</small></div>
+            <input type="file" id="proof-file" accept="image/*,.pdf" onchange="handleUpload(event)">
+          </div>
+          <div id="upload-name" style="font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--green);margin-top:5px;text-align:center"></div>
+          <div id="upload-preview" style="margin-top:7px;text-align:center"></div>
+        </div>
+        <a href="https://keep.google.com" target="_blank" rel="noopener" class="keep-link">
+          📝 Open Google Keep
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     7. WIN OVERLAY
+═══════════════════════════════════════════ -->
+<div class="overlay" id="win-ov">
+  <div class="ov-card" style="border:1px solid rgba(0,255,136,.28)">
+    <div class="ov-icon">🐱</div>
+    <div class="ov-title win">CAT RESCUED!</div>
+    <div class="ov-body" id="win-body">You found the cat!</div>
+    <div class="ov-btns">
+      <button class="btn btn-success" onclick="nextLevel()">NEXT LEVEL →</button>
+      <button class="btn btn-ghost btn-sm" onclick="confirmQuit()">QUIT</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     8. LOSE OVERLAY
+═══════════════════════════════════════════ -->
+<div class="overlay" id="lose-ov">
+  <div class="ov-card" style="border:1px solid rgba(255,0,168,.28)">
+    <div class="ov-icon">💨</div>
+    <div class="ov-title lose">O₂ DEPLETED</div>
+    <div class="ov-body">The cat has run out of oxygen. Quantum decoherence detected.</div>
+    <div class="ov-btns">
+      <button class="btn btn-danger" onclick="retryLevel()">↺ RETRY</button>
+      <button class="btn btn-ghost btn-sm" onclick="confirmQuit()">MAIN MENU</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     RESUME BANNER
+═══════════════════════════════════════════ -->
+<div id="resume-banner" style="display:none;position:fixed;bottom:60px;left:50%;transform:translateX(-50%);z-index:50;background:rgba(10,10,31,.97);border:1px solid var(--yellow);border-radius:12px;padding:13px 22px;font-family:'Share Tech Mono',monospace;font-size:12px;color:var(--yellow);backdrop-filter:blur(12px);display:none;align-items:center;gap:14px;flex-wrap:wrap">
+  💾 Saved session found!
+  <button class="btn btn-success btn-sm" onclick="resumeSession()">RESUME</button>
+  <button class="btn btn-ghost btn-sm" onclick="dismissResume()">NEW GAME</button>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+//  QUESTION BANK — 55 subject-based GATE questions (2021–2025)
+//  format: { id, year, q, opts:[], ans:[] (indices), multi:bool }
+//  NOTE: ans is always an ARRAY for uniform handling.
+//  For single-answer: ans=[idx], multi:false
+//  For multi-answer:  ans=[idx,...], multi:true
+// ══════════════════════════════════════════════════════════════
+const QBANK = {
+  Physics: [
+    {id:"PH01",year:2025,q:"A particle in a 1D infinite square well of width L has ground state energy E₁. The energy of the third excited state (n=4) is:",opts:["4E₁","8E₁","16E₁","12E₁"],ans:[2],multi:false},
+    {id:"PH02",year:2025,q:"The commutator [L̂x, L̂y] equals:",opts:["0","iℏL̂z","-iℏL̂z","ℏ²"],ans:[1],multi:false},
+    {id:"PH03",year:2025,q:"For a free particle, the group velocity vg and phase velocity vp are related by:",opts:["vg = vp","vg = 2vp","vg = vp/2","vg = vp²/c"],ans:[2],multi:false},
+    {id:"PH04",year:2025,q:"Which of the following are properties of a Hermitian operator?",opts:["Real eigenvalues","Orthogonal eigenstates","Unitary matrix representation","Complex eigenvalues"],ans:[0,1],multi:true},
+    {id:"PH05",year:2025,q:"The Debye model for heat capacity of a solid gives Cv ∝ T³ at:",opts:["High temperatures","T > Debye temperature","T ≪ Debye temperature","All temperatures"],ans:[2],multi:false},
+    {id:"PH06",year:2024,q:"The probability current density J for a wavefunction ψ is:",opts:["(ℏ/2mi)(ψ*∇ψ − ψ∇ψ*)","ℏ|ψ|²","(ℏ/m)∇ψ","iℏ∂ψ/∂t"],ans:[0],multi:false},
+    {id:"PH07",year:2024,q:"In the WKB approximation, the quantization condition is: ∮p dq =",opts:["nℏ","(n+½)h","nh","(n+½)ℏ"],ans:[1],multi:false},
+    {id:"PH08",year:2024,q:"The Meissner effect demonstrates that a superconductor is a:",opts:["Perfect conductor only","Perfect diamagnet","Ferromagnet","Paramagnet"],ans:[1],multi:false},
+    {id:"PH09",year:2024,q:"For an ideal Fermi gas at T=0, the average energy per particle is:",opts:["EF","2EF/3","3EF/5","EF/2"],ans:[2],multi:false},
+    {id:"PH10",year:2024,q:"Lenz's law is a consequence of conservation of:",opts:["Charge","Momentum","Energy","Angular momentum"],ans:[2],multi:false},
+    {id:"PH11",year:2023,q:"The Thomas-Fermi model of an atom treats electrons as:",opts:["Quantum harmonic oscillators","A classical electron gas in an effective potential","Point particles","Spin-½ particles only"],ans:[1],multi:false},
+    {id:"PH12",year:2023,q:"In spontaneous emission, the decay rate A is proportional to:",opts:["ω²","ω³","1/ω","ω"],ans:[1],multi:false},
+    {id:"PH13",year:2023,q:"The Brillouin zone boundary condition for electron waves in a crystal is:",opts:["k = nπ/a","k = 2nπ/a","k = π/2a","k = nπ/2a"],ans:[0],multi:false},
+    {id:"PH14",year:2023,q:"Which symmetries lead to conservation laws via Noether's theorem?",opts:["Time translation → energy","Spatial translation → momentum","Rotation → angular momentum","Gauge symmetry → charge"],ans:[0,1,2,3],multi:true},
+    {id:"PH15",year:2023,q:"The Hall coefficient RH for a free electron gas is:",opts:["−1/ne","1/ne","−ne","ne"],ans:[0],multi:false},
+    {id:"PH16",year:2022,q:"For a 3D isotropic harmonic oscillator, the degeneracy of the energy level with quantum number N = n₁+n₂+n₃ = 2 is:",opts:["3","6","9","12"],ans:[1],multi:false},
+    {id:"PH17",year:2022,q:"The equation of motion in the Heisenberg picture is:",opts:["iℏ∂|ψ⟩/∂t = H|ψ⟩","dÂ/dt = (i/ℏ)[H,Â] + ∂Â/∂t","dÂ/dt = (1/ℏ)[Â,H]","dÂ/dt = −(i/ℏ)[H,Â]"],ans:[1],multi:false},
+    {id:"PH18",year:2022,q:"A Carnot engine operates between 400 K and 300 K. Its efficiency is:",opts:["25%","33%","75%","50%"],ans:[0],multi:false},
+    {id:"PH19",year:2022,q:"The curl of a gradient field ∇×(∇f) is always:",opts:["∇²f","Zero vector","f","Non-zero"],ans:[1],multi:false},
+    {id:"PH20",year:2022,q:"Which of the following are true about Cooper pairs?",opts:["They have charge 2e","They are bosons","They form the basis of BCS theory","They exist only above Tc"],ans:[0,1,2],multi:true},
+    {id:"PH21",year:2021,q:"The number of independent components of the electromagnetic field tensor Fμν in 4D spacetime is:",opts:["16","10","6","4"],ans:[2],multi:false},
+    {id:"PH22",year:2021,q:"For stimulated emission to dominate over absorption, one needs:",opts:["Population inversion","Thermal equilibrium","Low temperature","High frequency radiation"],ans:[0],multi:false},
+    {id:"PH23",year:2021,q:"The Boltzmann factor for a state with energy E at temperature T is proportional to:",opts:["e^(E/kT)","e^(−E/kT)","kT/E","E/kT"],ans:[1],multi:false},
+    {id:"PH24",year:2021,q:"In a centrosymmetric crystal, which effect is absent?",opts:["Raman scattering","Piezoelectric effect","X-ray diffraction","Phonon scattering"],ans:[1],multi:false},
+    {id:"PH25",year:2021,q:"The retarded Green's function for the wave equation satisfies causality because:",opts:["It is zero for t > t'","It is zero for t < t'","It equals the advanced Green's function","It has no poles"],ans:[1],multi:false},
+    {id:"PH26",year:2025,q:"The Lamb shift arises from:",opts:["Spin-orbit coupling","Vacuum fluctuations of the electromagnetic field","Nuclear spin interaction","Relativistic mass increase"],ans:[1],multi:false},
+    {id:"PH27",year:2024,q:"A magnetic monopole would imply that ∇·B equals:",opts:["Zero always","μ₀ρm (magnetic charge density)","−μ₀ρm","Arbitrary"],ans:[1],multi:false},
+    {id:"PH28",year:2023,q:"The specific heat anomaly in a superconductor at Tc is a:",opts:["First-order transition","Second-order (λ) transition","Smooth crossover","Zeroth-order transition"],ans:[1],multi:false},
+    {id:"PH29",year:2022,q:"The Fermi energy of a 3D free electron gas scales with electron density n as:",opts:["n^(1/3)","n^(2/3)","n","n^(1/2)"],ans:[1],multi:false},
+    {id:"PH30",year:2021,q:"Two spin-½ particles can form states with total spin S = 1 (triplet) and S = 0 (singlet). The number of triplet states is:",opts:["1","2","3","4"],ans:[2],multi:false},
+    {id:"PH31",year:2025,q:"The Josephson effect involves tunneling of:",opts:["Single electrons","Cooper pairs","Phonons","Photons"],ans:[1],multi:false},
+    {id:"PH32",year:2024,q:"Kramers degeneracy states that every energy level of a system with half-integer total spin and time-reversal symmetry is at least:",opts:["Non-degenerate","Doubly degenerate","Triply degenerate","Four-fold degenerate"],ans:[1],multi:false},
+    {id:"PH33",year:2023,q:"The dispersion relation for phonons in a 1D diatomic chain has:",opts:["One acoustic branch","Two branches: one acoustic one optical","One optical branch only","Three branches"],ans:[1],multi:false},
+    {id:"PH34",year:2022,q:"The scattering amplitude f(θ) in the Born approximation is proportional to the:",opts:["Square of the potential","Fourier transform of the potential","Derivative of the potential","Laplacian of the potential"],ans:[1],multi:false},
+    {id:"PH35",year:2021,q:"Gauss's law in a dielectric medium is ∇·D = ρfree, where D =",opts:["ε₀E","ε₀E + P","ε₀E − P","P only"],ans:[1],multi:false},
+    {id:"PH36",year:2025,q:"The partition function of an ideal quantum gas relates to thermodynamic quantities via:",opts:["Z = ∑e^(−βEn)","F = −kT ln Z","Both A and B","Neither"],ans:[2],multi:false},
+    {id:"PH37",year:2024,q:"In Mössbauer spectroscopy, recoil-free emission is enhanced at:",opts:["High temperature","Low temperature","High pressure","Any temperature"],ans:[1],multi:false},
+    {id:"PH38",year:2023,q:"The van der Waals interaction between two atoms at large separation R falls off as:",opts:["1/R³","1/R⁶","1/R¹²","1/R²"],ans:[1],multi:false},
+    {id:"PH39",year:2022,q:"Wigner-Eckart theorem applies to:",opts:["Scalar operators only","Tensor operators in angular momentum","Momentum operators","Hamiltonian operators"],ans:[1],multi:false},
+    {id:"PH40",year:2021,q:"The London penetration depth λL in a superconductor characterises:",opts:["The coherence length","How far magnetic field penetrates the surface","The gap energy","The critical temperature"],ans:[1],multi:false},
+    {id:"PH41",year:2025,q:"The Bohr magneton μB has SI units:",opts:["J/T","T/J","A·m²","J·T"],ans:[0],multi:false},
+    {id:"PH42",year:2024,q:"The density of states for a 2D free electron gas is:",opts:["Proportional to √E","Constant (energy-independent)","Proportional to E","Proportional to 1/√E"],ans:[1],multi:false},
+    {id:"PH43",year:2023,q:"In the Ginzburg-Landau theory, the order parameter for a superconductor is:",opts:["The temperature T","A complex wavefunction ψ","The magnetic field B","The pair correlation function"],ans:[1],multi:false},
+    {id:"PH44",year:2022,q:"The RKKY interaction mediates coupling between magnetic impurities through:",opts:["Direct exchange","Conduction electrons","Phonons","Magnons"],ans:[1],multi:false},
+    {id:"PH45",year:2021,q:"Gauge invariance of electrodynamics leads to conservation of:",opts:["Energy","Momentum","Electric charge","Magnetic flux"],ans:[2],multi:false},
+    {id:"PH46",year:2025,q:"The spin-statistics theorem states that particles with half-integer spin obey:",opts:["Bose-Einstein statistics","Fermi-Dirac statistics","Maxwell-Boltzmann statistics","Planck statistics"],ans:[1],multi:false},
+    {id:"PH47",year:2024,q:"A quantum harmonic oscillator in state |n⟩. The expectation value ⟨x⟩ equals:",opts:["√(nℏ/2mω)","Zero","nℏ/mω","(n+½)ℏω"],ans:[1],multi:false},
+    {id:"PH48",year:2023,q:"The Aharonov-Bohm phase shift of an electron encircling a flux tube Φ is:",opts:["eΦ/ℏ","eΦ/2ℏ","2eΦ/ℏ","eΦ/4ℏ"],ans:[0],multi:false},
+    {id:"PH49",year:2022,q:"In second quantisation, [âk, â†k'] = ",opts:["δkk'","0","1","iℏδkk'"],ans:[0],multi:false},
+    {id:"PH50",year:2021,q:"The phonon contribution to thermal conductivity κ in an insulator scales as T³ at:",opts:["High T","T > Debye temperature","Very low T","Room temperature"],ans:[2],multi:false},
+    {id:"PH51",year:2025,q:"The expectation value of kinetic energy in the ground state of hydrogen is:",opts:["13.6 eV","−13.6 eV","27.2 eV","6.8 eV"],ans:[0],multi:false},
+    {id:"PH52",year:2024,q:"The crystal momentum of an electron in a periodic lattice is conserved modulo:",opts:["Any reciprocal lattice vector G","The lattice constant a","The Brillouin zone volume","The Fermi wavevector"],ans:[0],multi:false},
+    {id:"PH53",year:2023,q:"The optical theorem in scattering relates the total cross-section to:",opts:["The backward scattering amplitude","The forward scattering amplitude","The differential cross-section at 90°","The Born amplitude"],ans:[1],multi:false},
+    {id:"PH54",year:2022,q:"The Slater determinant ensures that the many-electron wavefunction is:",opts:["Symmetric under exchange","Antisymmetric under exchange","Normalised","Orthogonal to all states"],ans:[1],multi:false},
+    {id:"PH55",year:2021,q:"For a Dirac delta potential V(x) = −αδ(x), there is exactly one bound state with energy:",opts:["E = −mα²/2ℏ²","E = mα²/2ℏ²","E = −mα/2ℏ²","E = mα/ℏ²"],ans:[0],multi:false}
+  ],
+
+  Chemistry: [
+    // ── PASTE YOUR 55 CHEMISTRY GATE 2021-2025 QUESTIONS BELOW ──
+    // Format: {id:"CH01",year:2025,q:"...",opts:["A","B","C","D"],ans:[0],multi:false}
+    {id:"CH01",year:2025,q:"[PLACEHOLDER] According to VSEPR theory, the geometry of XeF₄ is:",opts:["Tetrahedral","Square planar","Octahedral","Trigonal bipyramidal"],ans:[1],multi:false},
+    {id:"CH02",year:2025,q:"[PLACEHOLDER] In MO theory, the bond order of O₂⁺ is:",opts:["1.5","2","2.5","3"],ans:[2],multi:false},
+    {id:"CH03",year:2025,q:"[PLACEHOLDER] The Born-Oppenheimer approximation assumes that nuclear and electronic motions can be:",opts:["Coupled together","Separated due to mass difference","Treated classically","Ignored independently"],ans:[1],multi:false},
+    {id:"CH04",year:2025,q:"[PLACEHOLDER] Which of the following exhibits the anomeric effect?",opts:["Cyclohexane","2-chlorotetrahydropyran","Benzene","Cyclohexanone"],ans:[1],multi:false},
+    {id:"CH05",year:2025,q:"[PLACEHOLDER] Crystal field stabilization energy (CFSE) for a d⁶ ion in octahedral strong field is:",opts:["−2.4Δo","−0.4Δo","0","−1.6Δo"],ans:[0],multi:false},
+    {id:"CH06",year:2024,q:"[PLACEHOLDER] The Eyring equation relates rate constant k to:",opts:["Activation energy Ea only","Gibbs free energy of activation ΔG‡","Enthalpy only","Entropy only"],ans:[1],multi:false},
+    {id:"CH07",year:2024,q:"[PLACEHOLDER] In ¹H NMR, a compound showing a triplet indicates coupling to how many equivalent H?",opts:["1","2","3","4"],ans:[1],multi:false},
+    {id:"CH08",year:2024,q:"[PLACEHOLDER] Which catalytic system is used in Ziegler-Natta polymerisation?",opts:["TiCl₄/AlEt₃","PdCl₂","Ni(CO)₄","CrO₃"],ans:[0],multi:false},
+    {id:"CH09",year:2024,q:"[PLACEHOLDER] The Jahn-Teller distortion is most pronounced for which d-electron configuration in octahedral field?",opts:["d³","d⁶ high spin","d⁹","d⁵ high spin"],ans:[2],multi:false},
+    {id:"CH10",year:2024,q:"[PLACEHOLDER] Hückel's rule predicts aromaticity when the number of π electrons is:",opts:["4n","4n+2","4n+4","2n+1"],ans:[1],multi:false},
+    {id:"CH11",year:2023,q:"[PLACEHOLDER] Woodward-Hoffmann rules for thermal [4+2] cycloaddition predict:",opts:["Forbidden","Allowed suprafacially","Allowed only with photochemical activation","Stepwise only"],ans:[1],multi:false},
+    {id:"CH12",year:2023,q:"[PLACEHOLDER] The trans influence in square planar Pt(II) complexes is correctly described as:",opts:["A kinetic effect","A thermodynamic weakening of the bond trans to a high trans-influence ligand","An electronic ground state effect","Both B and C"],ans:[3],multi:false},
+    {id:"CH13",year:2023,q:"[PLACEHOLDER] Marcus theory for electron transfer describes how rate depends on:",opts:["Reorganisation energy λ and ΔG°","Bond length only","Temperature only","Solvent viscosity"],ans:[0],multi:false},
+    {id:"CH14",year:2023,q:"[PLACEHOLDER] In HSAB theory, which combination is most stable?",opts:["Hard acid + soft base","Soft acid + hard base","Hard acid + hard base","No preference"],ans:[2],multi:false},
+    {id:"CH15",year:2023,q:"[PLACEHOLDER] The chelate effect is primarily a consequence of:",opts:["Larger ΔH","Favourable entropy increase (ΔS > 0)","Smaller charge","Larger field splitting"],ans:[1],multi:false},
+    {id:"CH16",year:2022,q:"[PLACEHOLDER] Density functional theory (DFT) is based on the Hohenberg-Kohn theorem that the ground-state energy is a unique functional of:",opts:["The wavefunction","The electron density ρ(r)","The Hamiltonian","The basis set"],ans:[1],multi:false},
+    {id:"CH17",year:2022,q:"[PLACEHOLDER] Stokes shift in fluorescence occurs because:",opts:["Emission wavelength is shorter than absorption","Vibrational relaxation occurs before emission","Emission wavelength equals absorption wavelength","The molecule absorbs two photons"],ans:[1],multi:false},
+    {id:"CH18",year:2022,q:"[PLACEHOLDER] Which NMR technique gives H-C correlations over 2-3 bonds?",opts:["COSY","HSQC","HMBC","NOESY"],ans:[2],multi:false},
+    {id:"CH19",year:2022,q:"[PLACEHOLDER] Beer-Lambert law A = εcl. If path length doubles, absorbance:",opts:["Halves","Doubles","Stays same","Quadruples"],ans:[1],multi:false},
+    {id:"CH20",year:2022,q:"[PLACEHOLDER] The Nernst equation corrects electrode potential for:",opts:["Temperature alone","Non-standard concentrations","Pressure alone","Ionic strength alone"],ans:[1],multi:false},
+    {id:"CH21",year:2021,q:"[PLACEHOLDER] π-backbonding from a metal to CO strengthens the M−C bond and _____ the C≡O bond:",opts:["Strengthens","Weakens","Does not affect","Breaks"],ans:[1],multi:false},
+    {id:"CH22",year:2021,q:"[PLACEHOLDER] The 18-electron rule is most reliably obeyed by:",opts:["Lanthanide complexes","Organometallic transition metal complexes","Main group compounds","Ionic salts"],ans:[1],multi:false},
+    {id:"CH23",year:2021,q:"[PLACEHOLDER] In SN2 reactions, the stereochemical outcome is:",opts:["Retention","Racemisation","Inversion (Walden inversion)","No change"],ans:[2],multi:false},
+    {id:"CH24",year:2021,q:"[PLACEHOLDER] The Clausius-Clapeyron equation applies to:",opts:["Solid-gas equilibrium (sublimation)","Liquid-gas phase equilibrium","Solid-liquid equilibrium","All phase boundaries"],ans:[3],multi:false},
+    {id:"CH25",year:2021,q:"[PLACEHOLDER] Debye-Hückel limiting law gives activity coefficient γ± as a function of:",opts:["Temperature only","Ionic strength I","Pressure","Viscosity"],ans:[1],multi:false},
+    {id:"CH26",year:2025,q:"[PLACEHOLDER] Which of the following are correct about spin-orbit coupling in heavy atoms?",opts:["It increases with atomic number Z","It splits degenerate levels","It is a relativistic effect","It decreases with Z"],ans:[0,1,2],multi:true},
+    {id:"CH27",year:2024,q:"[PLACEHOLDER] The quantum yield φ in photochemistry is defined as:",opts:["Moles reacted per mole of photons absorbed","Photons emitted/photons absorbed","Rate of reaction/light intensity","Energy absorbed/mole"],ans:[0],multi:false},
+    {id:"CH28",year:2023,q:"[PLACEHOLDER] Pourbaix diagrams plot the stability of species against:",opts:["Temperature and pressure","pH and electrode potential E","Concentration and ionic strength","T and E"],ans:[1],multi:false},
+    {id:"CH29",year:2022,q:"[PLACEHOLDER] In X-ray photoelectron spectroscopy (XPS), one measures:",opts:["Core electron binding energies","Vibrational frequencies","Rotational constants","Nuclear spin"],ans:[0],multi:false},
+    {id:"CH30",year:2021,q:"[PLACEHOLDER] The Hammond postulate relates the transition state structure to:",opts:["Solvent polarity","Reactant or product stability depending on ΔH of reaction","Temperature","Catalyst efficiency"],ans:[1],multi:false},
+    {id:"CH31",year:2025,q:"[PLACEHOLDER] Grubbs catalyst (2nd generation) is used in:",opts:["Hydrogenation","Olefin metathesis","Heck reaction","Suzuki coupling"],ans:[1],multi:false},
+    {id:"CH32",year:2024,q:"[PLACEHOLDER] In a galvanic cell, spontaneous reaction occurs when:",opts:["ΔG° > 0","E°cell < 0","E°cell > 0","ΔG° = 0"],ans:[2],multi:false},
+    {id:"CH33",year:2023,q:"[PLACEHOLDER] Kinetic isotope effect (KIE) > 1 when the rate-limiting step involves:",opts:["O−H bond breaking","C−H bond breaking","Metal oxidation","Electron transfer"],ans:[1],multi:false},
+    {id:"CH34",year:2022,q:"[PLACEHOLDER] The RRKM theory describes:",opts:["Electron transfer rates","Unimolecular reaction rate constants","Termolecular reactions","Diffusion-controlled reactions"],ans:[1],multi:false},
+    {id:"CH35",year:2021,q:"[PLACEHOLDER] Superacids are characterised by Hammett acidity function H₀ values:",opts:["H₀ > 0","0 > H₀ > −12","H₀ < −12","H₀ = 0"],ans:[2],multi:false},
+    {id:"CH36",year:2025,q:"[PLACEHOLDER] In EXAFS, the oscillations in X-ray absorption above the edge give information about:",opts:["Oxidation state only","Local atomic structure (bond lengths, coordination number)","Valence electrons only","Crystal symmetry only"],ans:[1],multi:false},
+    {id:"CH37",year:2024,q:"[PLACEHOLDER] Green chemistry atom economy is defined as:",opts:["(MW product/MW all reactants)×100","(Moles product/moles reactant)×100","(Mass recovered/mass used)×100","(Yield/theoretical yield)×100"],ans:[0],multi:false},
+    {id:"CH38",year:2023,q:"[PLACEHOLDER] Asymmetric hydrogenation using BINAP-Rh complex was developed by:",opts:["Wilkinson","Noyori","Sharpless","Grubbs"],ans:[1],multi:false},
+    {id:"CH39",year:2022,q:"[PLACEHOLDER] Frost circle construction predicts MO energies for:",opts:["Linear conjugated systems","Cyclic conjugated systems","Branched aliphatics","Transition metal complexes"],ans:[1],multi:false},
+    {id:"CH40",year:2021,q:"[PLACEHOLDER] The raman effect involves inelastic scattering where photon energy changes by:",opts:["Zero","A vibrational quantum of the molecule","An electronic transition energy","A rotational quantum"],ans:[1],multi:false},
+    {id:"CH41",year:2025,q:"[PLACEHOLDER] Which of the following are true about entropy in statistical mechanics?",opts:["S = kB ln W","S increases for spontaneous isolated processes","S can decrease locally if it increases elsewhere","S = −kB ΣpᵢlnPᵢ"],ans:[0,1,2,3],multi:true},
+    {id:"CH42",year:2024,q:"[PLACEHOLDER] Inversion barrier in amines is small, enabling rapid nitrogen inversion, which means:",opts:["Amines are planar","Amines cannot be resolved into enantiomers at room temperature","Amines show no chirality ever","Lone pair is in a p-orbital"],ans:[1],multi:false},
+    {id:"CH43",year:2023,q:"[PLACEHOLDER] The Clausius inequality dS ≥ dq/T holds for:",opts:["Reversible processes only (equality)","Irreversible processes (strict inequality)","Both — equality for reversible, inequality for irreversible","Neither"],ans:[2],multi:false},
+    {id:"CH44",year:2022,q:"[PLACEHOLDER] The Staudinger reaction converts an azide and a phosphine to:",opts:["An imine","A phosphazide then an imine after hydrolysis","A nitrile","An amine"],ans:[1],multi:false},
+    {id:"CH45",year:2021,q:"[PLACEHOLDER] In electrochemistry, Tafel slope relates overpotential to:",opts:["Current","log(current)","Temperature","Concentration"],ans:[1],multi:false},
+    {id:"CH46",year:2025,q:"[PLACEHOLDER] The charge-transfer band in metal complexes involves:",opts:["d-d transitions","Ligand-to-metal or metal-to-ligand electron transfer","π-π* transitions","σ-σ* transitions"],ans:[1],multi:false},
+    {id:"CH47",year:2024,q:"[PLACEHOLDER] Electron correlation energy is defined as:",opts:["Exact energy","HF energy","Exact energy − HF energy","DFT energy"],ans:[2],multi:false},
+    {id:"CH48",year:2023,q:"[PLACEHOLDER] The Lindemann mechanism for unimolecular reactions explains the:",opts:["Temperature dependence of rate","Pressure fall-off at low pressures","Solvent effects","Ionic strength effects"],ans:[1],multi:false},
+    {id:"CH49",year:2022,q:"[PLACEHOLDER] Which reagent is used in the Sharpless epoxidation?",opts:["mCPBA","Ti(OiPr)₄/TBHP/tartrate","OsO₄","H₂O₂/MnO₄−"],ans:[1],multi:false},
+    {id:"CH50",year:2021,q:"[PLACEHOLDER] The partition function q for a harmonic oscillator (quantum) at temperature T is:",opts:["1/(1−e^(−hν/kT))","e^(−hν/2kT)/(1−e^(−hν/kT))","kT/hν","e^(−hν/kT)"],ans:[1],multi:false},
+    {id:"CH51",year:2025,q:"[PLACEHOLDER] In carbon NMR, DEPT-135 shows CH and CH₃ as positive signals and CH₂ as:",opts:["Positive","Negative","Absent","Zero"],ans:[1],multi:false},
+    {id:"CH52",year:2024,q:"[PLACEHOLDER] The principle of microscopic reversibility states that:",opts:["Forward and reverse rates are equal","At equilibrium, every microscopic process is balanced by its reverse","Entropy is constant","Activation energy is path-independent"],ans:[1],multi:false},
+    {id:"CH53",year:2023,q:"[PLACEHOLDER] The osmotic pressure π for a dilute solution (van't Hoff) is:",opts:["π = cRT","π = nRT/V","Both A and B are equivalent","π = kBT"],ans:[2],multi:false},
+    {id:"CH54",year:2022,q:"[PLACEHOLDER] In LCAO-MO theory, the bonding MO of H₂ is:",opts:["ψA − ψB","ψA × ψB","ψA + ψB","1/√2 × (ψA − ψB)"],ans:[2],multi:false},
+    {id:"CH55",year:2021,q:"[PLACEHOLDER] The Franck-Condon principle states that electronic transitions are much faster than:",opts:["Photon absorption","Nuclear motion (Born-Oppenheimer timescale)","Electron spin flip","Ionisation"],ans:[1],multi:false}
+  ],
+
+  Mathematics: [
+    {id:"MA01",year:2025,q:"Let A be a 3×3 real symmetric matrix with eigenvalues 1, 2, 4. The trace of A² is:",opts:["7","9","21","14"],ans:[2],multi:false},
+    {id:"MA02",year:2025,q:"The Laplace transform of t²e^(3t) is:",opts:["2/(s−3)³","2/(s+3)³","6/(s−3)³","2/(s−3)²"],ans:[0],multi:false},
+    {id:"MA03",year:2025,q:"The Fourier transform of e^(−a|x|) (a > 0) is:",opts:["2a/(a²+ω²)","a/(a²+ω²)","2/(a²+ω²)","a²/(a²+ω²)"],ans:[0],multi:false},
+    {id:"MA04",year:2025,q:"Which of the following are correct for a holomorphic function f = u + iv?",opts:["∂u/∂x = ∂v/∂y","∂u/∂y = −∂v/∂x","The function is conformal where f'≠0","∇²u = 0"],ans:[0,1,2,3],multi:true},
+    {id:"MA05",year:2025,q:"The residue of f(z) = e^z/(z−1)³ at z = 1 is:",opts:["e/2","e","e/6","2e"],ans:[0],multi:false},
+    {id:"MA06",year:2024,q:"The PDE ∂²u/∂x² − 4∂²u/∂t² = 0 is classified as:",opts:["Elliptic","Parabolic","Hyperbolic","None"],ans:[2],multi:false},
+    {id:"MA07",year:2024,q:"Newton-Raphson iteration for f(x) = 0 starting at x₀ gives x₁ =",opts:["x₀ − f(x₀)/f'(x₀)","x₀ + f(x₀)/f'(x₀)","x₀ − f'(x₀)/f(x₀)","x₀/f'(x₀)"],ans:[0],multi:false},
+    {id:"MA08",year:2024,q:"The probability density of a normal distribution N(μ,σ²) is symmetric about:",opts:["Zero","Median only","Mean μ","Mode only"],ans:[2],multi:false},
+    {id:"MA09",year:2024,q:"For an ODE y'' + p(x)y' + q(x)y = 0, the Wronskian W(x) satisfies:",opts:["W' = p(x)W","W' = −p(x)W","W = constant","W' = q(x)W"],ans:[1],multi:false},
+    {id:"MA10",year:2024,q:"The Gram-Schmidt orthogonalisation produces from a set of linearly independent vectors a set that is:",opts:["Linearly dependent","Orthonormal","Orthogonal but not normal","Identical"],ans:[1],multi:false},
+    {id:"MA11",year:2023,q:"Green's theorem ∮(P dx + Q dy) = ∬(∂Q/∂x − ∂P/∂y) dA requires the region to be:",opts:["Unbounded","Simply connected with piecewise smooth boundary","Multiply connected only","Convex"],ans:[1],multi:false},
+    {id:"MA12",year:2023,q:"The characteristic polynomial of matrix A satisfies A itself (Cayley-Hamilton). For A = [[1,2],[0,3]], the characteristic polynomial is:",opts:["λ²−4λ+3","λ²+4λ+3","λ²−4λ−3","λ²+4λ−3"],ans:[0],multi:false},
+    {id:"MA13",year:2023,q:"The method of characteristics applies to which class of PDE?",opts:["Elliptic only","Hyperbolic first-order PDEs","Parabolic only","Nonlinear only"],ans:[1],multi:false},
+    {id:"MA14",year:2023,q:"Bayes' theorem: P(A|B) = P(B|A)P(A)/P(B). This is used in:",opts:["Only discrete distributions","Both discrete and continuous probability","Only Gaussian distributions","Deterministic systems"],ans:[1],multi:false},
+    {id:"MA15",year:2023,q:"The order of convergence of the secant method is approximately:",opts:["1.0","1.618 (golden ratio)","2.0","0.5"],ans:[1],multi:false},
+    {id:"MA16",year:2022,q:"The Dirac delta satisfies ∫₋∞^∞ f(x) δ(x−a) dx =",opts:["f(0)","f(a)","f'(a)","0"],ans:[1],multi:false},
+    {id:"MA17",year:2022,q:"The eigenvalues of a unitary matrix all have modulus:",opts:["0","1","Between 0 and 1","Any positive real"],ans:[1],multi:false},
+    {id:"MA18",year:2022,q:"For the heat equation ∂u/∂t = α ∂²u/∂x², solutions decay:",opts:["Oscillate","Exponentially in time","Grow","Are constant"],ans:[1],multi:false},
+    {id:"MA19",year:2022,q:"The variance of a Poisson distribution with parameter λ is:",opts:["λ²","√λ","λ","1/λ"],ans:[2],multi:false},
+    {id:"MA20",year:2022,q:"Simpson's 1/3 rule for numerical integration is exact for polynomials of degree up to:",opts:["1","2","3","4"],ans:[2],multi:false},
+    {id:"MA21",year:2021,q:"The Euler-Lagrange equation for the functional J[y] = ∫L(x,y,y')dx is:",opts:["∂L/∂y = 0","∂L/∂y − d/dx(∂L/∂y') = 0","d/dx(∂L/∂y') = 0","∂L/∂x = 0"],ans:[1],multi:false},
+    {id:"MA22",year:2021,q:"The Jacobian of the transformation (x,y)→(r,θ) for polar coordinates is:",opts:["1","r","r²","1/r"],ans:[1],multi:false},
+    {id:"MA23",year:2021,q:"For a Markov chain, the steady-state distribution π satisfies:",opts:["πP = π","Pπ = π","π = P","π·P = 1"],ans:[0],multi:false},
+    {id:"MA24",year:2021,q:"The radius of convergence of the power series Σ aₙzⁿ is R = 1/limsup |aₙ|^(1/n). For Σ zⁿ/n!, R =",opts:["1","0","∞","e"],ans:[2],multi:false},
+    {id:"MA25",year:2021,q:"Rolle's theorem guarantees a point c in (a,b) where f'(c)=0 if f is continuous on [a,b], differentiable on (a,b), and:",opts:["f(a)=0","f(a)=f(b)","f'(a)=0","f is convex"],ans:[1],multi:false},
+    {id:"MA26",year:2025,q:"The rank of a matrix equals the number of non-zero singular values. For A = [[1,2],[2,4]], rank(A) =",opts:["2","1","0","3"],ans:[1],multi:false},
+    {id:"MA27",year:2024,q:"The Convolution theorem states F{f*g}(ω) =",opts:["F(ω)+G(ω)","F(ω)·G(ω)","F(ω)/G(ω)","F(ω)−G(ω)"],ans:[1],multi:false},
+    {id:"MA28",year:2023,q:"The curl of any gradient field ∇×(∇φ) is:",opts:["∇²φ","Non-zero in general","Always zero","φ"],ans:[2],multi:false},
+    {id:"MA29",year:2022,q:"For the z-transform, the ROC of a causal sequence aⁿu[n] (|a|<1) is:",opts:["|z| < |a|","|z| > |a|","|z| = 1","All z"],ans:[1],multi:false},
+    {id:"MA30",year:2021,q:"The mean of a chi-squared distribution χ²(k) is:",opts:["k/2","k","2k","√k"],ans:[1],multi:false},
+    {id:"MA31",year:2025,q:"Stokes' theorem: ∮_C F·dr = ∬_S (∇×F)·dS. The LHS is a _____ integral:",opts:["Surface","Volume","Line","Double"],ans:[2],multi:false},
+    {id:"MA32",year:2024,q:"Parseval's theorem for Fourier transforms states ∫|f(x)|²dx =",opts:["∫|F(ω)|²dω","(1/2π)∫|F(ω)|²dω","(2π)∫|F(ω)|²dω","∫F(ω)dω"],ans:[1],multi:false},
+    {id:"MA33",year:2023,q:"The trapezoidal rule error is O(h²) meaning it is exact for polynomials of degree up to:",opts:["0","1","2","3"],ans:[1],multi:false},
+    {id:"MA34",year:2022,q:"If A is an n×n matrix with n distinct eigenvalues, it is:",opts:["Singular","Non-diagonalizable","Diagonalizable over ℂ","Orthogonal"],ans:[2],multi:false},
+    {id:"MA35",year:2021,q:"The solution of the IVP y' = ky, y(0) = y₀ is:",opts:["y₀e^(kx)","y₀sin(kx)","y₀/k","y₀+kx"],ans:[0],multi:false},
+    {id:"MA36",year:2025,q:"In hypothesis testing, a Type II error is:",opts:["Rejecting H₀ when true","Failing to reject H₀ when false","Correct rejection","Correct acceptance"],ans:[1],multi:false},
+    {id:"MA37",year:2024,q:"The generating function for Legendre polynomials is (1−2xt+t²)^(−1/2). What is P₀(x)?",opts:["0","x","1","x²−1"],ans:[2],multi:false},
+    {id:"MA38",year:2023,q:"The inverse Laplace transform of 1/(s²+a²) is:",opts:["cos(at)","sin(at)/a","cos(at)/a","sin(at)"],ans:[1],multi:false},
+    {id:"MA39",year:2022,q:"A group G is cyclic if:",opts:["All elements have the same order","G is generated by a single element","G is Abelian and finite","G has prime order"],ans:[1],multi:false},
+    {id:"MA40",year:2021,q:"The Gaussian quadrature with n nodes integrates polynomials of degree up to:",opts:["n−1","n","2n−1","2n"],ans:[2],multi:false},
+    {id:"MA41",year:2025,q:"Which of the following are properties of the Fourier transform?",opts:["Linearity","Time shift → phase shift in frequency","Differentiation in time → multiplication by iω","Convolution in time → multiplication in frequency"],ans:[0,1,2,3],multi:true},
+    {id:"MA42",year:2024,q:"The central difference approximation for f'(x) is:",opts:["[f(x+h)−f(x)]/h","[f(x+h)−f(x−h)]/(2h)","[f(x)−f(x−h)]/h","[f(x+h)+f(x−h)]/(2h)"],ans:[1],multi:false},
+    {id:"MA43",year:2023,q:"The Bessel equation x²y'' + xy' + (x²−n²)y = 0 has solutions:",opts:["Jₙ(x) and Yₙ(x)","Jₙ(x) and Iₙ(x)","Kₙ(x) only","eⁿˣ"],ans:[0],multi:false},
+    {id:"MA44",year:2022,q:"For continuous random variable X with PDF f(x), E[X] =",opts:["∫x²f(x)dx","∫xf(x)dx","∫f(x)dx","Σxf(x)"],ans:[1],multi:false},
+    {id:"MA45",year:2021,q:"The Gauss-Seidel iterative method differs from Jacobi iteration in that:",opts:["It uses the latest updated values in the same iteration","It requires more storage","It always converges faster","It uses matrix inversion"],ans:[0],multi:false},
+    {id:"MA46",year:2025,q:"The Cauchy-Schwarz inequality states |⟨u,v⟩|² ≤",opts:["⟨u,u⟩+⟨v,v⟩","⟨u,u⟩·⟨v,v⟩","⟨u,v⟩+⟨v,u⟩","⟨u,u⟩/⟨v,v⟩"],ans:[1],multi:false},
+    {id:"MA47",year:2024,q:"The solution to the 2D Laplace equation ∇²u = 0 in polar coordinates with u = f(θ) on a circle involves:",opts:["Bessel functions","Fourier series in θ","Legendre polynomials","Exponential functions in r only"],ans:[1],multi:false},
+    {id:"MA48",year:2023,q:"The divergence theorem ∭_V (∇·F)dV = ∯_S F·dS requires the vector field F to be:",opts:["Conservative","Continuous and differentiable in V","Irrotational","Harmonic"],ans:[1],multi:false},
+    {id:"MA49",year:2022,q:"The condition number of a matrix measures its:",opts:["Rank","Sensitivity of solution to perturbations","Determinant","Trace"],ans:[1],multi:false},
+    {id:"MA50",year:2021,q:"The Poisson distribution models:",opts:["Continuous data","Number of rare events in a fixed interval","Normal approximation","Binary outcomes"],ans:[1],multi:false},
+    {id:"MA51",year:2025,q:"The linear programming simplex method moves along:",opts:["Interior points","Edges of the feasible region","Vertices of the feasible polytope","Curved paths"],ans:[2],multi:false},
+    {id:"MA52",year:2024,q:"For the matrix exponential e^(At), the solution of x' = Ax is:",opts:["x(t) = e^(At)x₀","x(t) = Ae^t x₀","x(t) = e^A x₀t","x(t) = sin(At)x₀"],ans:[0],multi:false},
+    {id:"MA53",year:2023,q:"The Chebyshev polynomials T_n(x) satisfy the orthogonality relation with weight function:",opts:["1","√(1−x²)","1/√(1−x²)","x²"],ans:[2],multi:false},
+    {id:"MA54",year:2022,q:"Which of the following are properties of a positive definite matrix?",opts:["All eigenvalues > 0","All principal minors > 0","x^T A x > 0 for all x≠0","Determinant > 0"],ans:[0,1,2,3],multi:true},
+    {id:"MA55",year:2021,q:"The exponential distribution with rate λ is memoryless because:",opts:["Its mean is 1/λ","P(X>s+t|X>s) = P(X>t) for all s,t>0","Its variance is 1/λ²","It is a special case of Gamma"],ans:[1],multi:false}
+  ]
+};
+
+// ══════════════════════════════════════════════════════════════
+//  CAT DEFINITIONS (year 2021–2025)
+// ══════════════════════════════════════════════════════════════
+const CATS = [
+  { name:"QUBIT",    year:2025, emoji:"🐱", color:"#00f5ff",
+    svg:`<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><circle cx="32" cy="34" r="18" fill="none" stroke="#00f5ff" stroke-width="2"/><polygon points="20,20 26,8 32,20" fill="none" stroke="#00f5ff" stroke-width="2"/><polygon points="32,20 38,8 44,20" fill="none" stroke="#00f5ff" stroke-width="2"/><circle cx="25" cy="32" r="3" fill="#00f5ff"/><circle cx="39" cy="32" r="3" fill="#00f5ff"/><path d="M27,40 Q32,45 37,40" fill="none" stroke="#00f5ff" stroke-width="2" stroke-linecap="round"/><line x1="18" y1="36" x2="10" y2="34" stroke="#00f5ff" stroke-width="1.5"/><line x1="18" y1="38" x2="10" y2="38" stroke="#00f5ff" stroke-width="1.5"/><line x1="46" y1="36" x2="54" y2="34" stroke="#00f5ff" stroke-width="1.5"/><line x1="46" y1="38" x2="54" y2="38" stroke="#00f5ff" stroke-width="1.5"/></svg>`},
+  { name:"PURRTON",  year:2024, emoji:"😼", color:"#a855f7",
+    svg:`<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><circle cx="32" cy="36" r="18" fill="none" stroke="#a855f7" stroke-width="2"/><polygon points="18,22 24,8 30,22" fill="#a855f7" opacity="0.5"/><polygon points="34,22 40,8 46,22" fill="#a855f7" opacity="0.5"/><circle cx="26" cy="33" r="3.5" fill="#a855f7"/><circle cx="38" cy="33" r="3.5" fill="#a855f7"/><circle cx="26" cy="33" r="1.5" fill="#050510"/><circle cx="38" cy="33" r="1.5" fill="#050510"/><path d="M29,43 Q32,47 35,43" fill="none" stroke="#a855f7" stroke-width="2"/><line x1="14" y1="35" x2="6" y2="33" stroke="#a855f7" stroke-width="1.5"/><line x1="14" y1="38" x2="6" y2="38" stroke="#a855f7" stroke-width="1.5"/><line x1="50" y1="35" x2="58" y2="33" stroke="#a855f7" stroke-width="1.5"/><line x1="50" y1="38" x2="58" y2="38" stroke="#a855f7" stroke-width="1.5"/></svg>`},
+  { name:"WAVEY",    year:2023, emoji:"😸", color:"#00ff88",
+    svg:`<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><ellipse cx="32" cy="36" rx="19" ry="17" fill="none" stroke="#00ff88" stroke-width="2"/><path d="M17,22 Q20,10 27,20" fill="none" stroke="#00ff88" stroke-width="2"/><path d="M47,22 Q44,10 37,20" fill="none" stroke="#00ff88" stroke-width="2"/><circle cx="26" cy="34" r="2" fill="#00ff88"/><circle cx="38" cy="34" r="2" fill="#00ff88"/><path d="M28,41 Q32,46 36,41" fill="none" stroke="#00ff88" stroke-width="2" stroke-linecap="round"/><line x1="15" y1="36" x2="6" y2="32" stroke="#00ff88" stroke-width="1.5"/><line x1="15" y1="39" x2="6" y2="39" stroke="#00ff88" stroke-width="1.5"/><line x1="49" y1="36" x2="58" y2="32" stroke="#00ff88" stroke-width="1.5"/><line x1="49" y1="39" x2="58" y2="39" stroke="#00ff88" stroke-width="1.5"/></svg>`},
+  { name:"ENTANGLE", year:2022, emoji:"😺", color:"#ff00a8",
+    svg:`<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><path d="M32,18 Q50,18 50,36 Q50,54 32,54 Q14,54 14,36 Q14,18 32,18Z" fill="none" stroke="#ff00a8" stroke-width="2"/><path d="M22,14 L26,22" stroke="#ff00a8" stroke-width="2.5" stroke-linecap="round"/><path d="M42,14 L38,22" stroke="#ff00a8" stroke-width="2.5" stroke-linecap="round"/><path d="M22,30 Q26,28 30,32 Q26,36 22,34 Q20,32 22,30Z" fill="#ff00a8" opacity="0.7"/><path d="M42,30 Q38,28 34,32 Q38,36 42,34 Q44,32 42,30Z" fill="#ff00a8" opacity="0.7"/><path d="M26,43 Q32,49 38,43" fill="none" stroke="#ff00a8" stroke-width="2" stroke-linecap="round"/><line x1="14" y1="36" x2="6" y2="33" stroke="#ff00a8" stroke-width="1.5"/><line x1="14" y1="39" x2="6" y2="40" stroke="#ff00a8" stroke-width="1.5"/><line x1="50" y1="36" x2="58" y2="33" stroke="#ff00a8" stroke-width="1.5"/><line x1="50" y1="39" x2="58" y2="40" stroke="#ff00a8" stroke-width="1.5"/></svg>`},
+  { name:"TENSOR",   year:2021, emoji:"🐈", color:"#ffe000",
+    svg:`<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><rect x="14" y="20" width="36" height="32" rx="10" fill="none" stroke="#ffe000" stroke-width="2"/><polygon points="14,22 20,8 26,22" fill="none" stroke="#ffe000" stroke-width="2"/><polygon points="38,22 44,8 50,22" fill="none" stroke="#ffe000" stroke-width="2"/><rect x="24" y="28" width="7" height="9" rx="2" fill="#ffe000" opacity="0.6"/><rect x="33" y="28" width="7" height="9" rx="2" fill="#ffe000" opacity="0.6"/><circle cx="27.5" cy="32" r="2" fill="#050510"/><circle cx="36.5" cy="32" r="2" fill="#050510"/><path d="M27,44 Q32,49 37,44" fill="none" stroke="#ffe000" stroke-width="2" stroke-linecap="round"/><line x1="14" y1="34" x2="5" y2="31" stroke="#ffe000" stroke-width="1.5"/><line x1="14" y1="37" x2="5" y2="37" stroke="#ffe000" stroke-width="1.5"/><line x1="50" y1="34" x2="59" y2="31" stroke="#ffe000" stroke-width="1.5"/><line x1="50" y1="37" x2="59" y2="37" stroke="#ffe000" stroke-width="1.5"/></svg>`}
+];
+
+// ══════════════════════════════════════════════════════════════
+//  GOOGLE SHEETS INTEGRATION
+//  SETUP:
+//  1. Open https://docs.google.com/spreadsheets/d/1pjnr2jpGnM4DDAgx4Yf1qJqY3Q3cJh_Ryfk37avmYeQ
+//  2. Extensions → Apps Script → paste doPost() below → Deploy as Web App
+//  3. Paste the deployment URL into SHEETS_URL constant below
+//
+//  ╔══════════════════════════════════════════════════════════════╗
+//  ║  PASTE THIS ENTIRE BLOCK INTO GOOGLE APPS SCRIPT            ║
+//  ║  Extensions → Apps Script → replace all → Deploy new version║
+//  ╚══════════════════════════════════════════════════════════════╝
+//  function doPost(e) {
+//    try {
+//      var sheet = SpreadsheetApp
+//        .openById('1pjnr2jpGnM4DDAgx4Yf1qJqY3Q3cJh_Ryfk37avmYeQ')
+//        .getActiveSheet();
+//      // e.parameter reads HTML form field values (name/value pairs)
+//      var d = e.parameter;
+//      // Add header row automatically if sheet is empty
+//      if(sheet.getLastRow() === 0){
+//        sheet.appendRow(['Timestamp','Event','Name','Email','Phone',
+//          'Institute','Subject','Cat','GATE Year','Level',
+//          'O2 %','Solved','Total Q','Recent Answers']);
+//      }
+//      sheet.appendRow([
+//        new Date(),
+//        d.event     || '',
+//        d.name      || '',
+//        d.email     || '',
+//        d.phone     || '',
+//        d.institute || '',
+//        d.subject   || '',
+//        d.cat       || '',
+//        d.gateYear  || '',
+//        d.level     || '',
+//        d.oxygen    || '',
+//        d.solved    || '',
+//        d.totalQ    || '',
+//        d.answers   || ''
+//      ]);
+//      return ContentService
+//        .createTextOutput(JSON.stringify({status:'ok'}))
+//        .setMimeType(ContentService.MimeType.JSON);
+//    } catch(err) {
+//      return ContentService
+//        .createTextOutput(JSON.stringify({status:'error',msg:err.toString()}))
+//        .setMimeType(ContentService.MimeType.JSON);
+//    }
+//  }
+//  function doGet(e) {
+//    return ContentService
+//      .createTextOutput(JSON.stringify({status:'alive',time:new Date().toString()}))
+//      .setMimeType(ContentService.MimeType.JSON);
+//  }
+// ══════════════════════════════════════════════════════════════
+// [BACKEND INTEGRATION POINT] Replace with your deployed Apps Script URL:
+const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwh6Yr_6M1t44pO4nNVtP4E4UnfSkV18mZCsklYK1z9_dhh1Ve8VBe3wO82v3fZuAB5xw/exec';
+
+// ══════════════════════════════════════════════════════════════
+//  GAME STATE
+// ══════════════════════════════════════════════════════════════
+const GRID_ROWS=4, GRID_COLS=5, TOTAL_BOXES=20;
+
+let player = { name:'', email:'', phone:'', institute:'' };
+let emailVerified = false, generatedOTP = '', otpTimer = null;
+
+let state = {
+  subject:null, catIdx:0,
+  oxygen:100, level:1, solved:0,
+  catPos:0, prevCatPos:0,
+  openedBoxes:[], answerLocked:false,
+  timerSecs:60, timerInterval:null,
+  // Question queue: shuffled array of 55 question indices, pointer tracks position
+  // If a question is answered wrong, it gets re-appended to the queue
+  qQueue:[], qPointer:0,
+  currentQ:null, currentBox:null,
+  answerLog:[], // {id, correct, ts}
+};
+
+// ══════════════════════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════════════════════
+window.onload = function(){
+  buildCatGrid();
+  injectFooters();
+  checkResume();
+  prefillForm();
+};
+
+function injectFooters(){
+  const tpl = document.getElementById('footer-tpl').content;
+  document.querySelectorAll('.screen').forEach(sc => {
+    const f = tpl.cloneNode(true);
+    sc.appendChild(f);
+  });
+}
+
+function prefillForm(){
+  const saved = localStorage.getItem('sqp');
+  if(!saved) return;
+  try{
+    const p = JSON.parse(saved);
+    if(p.name) document.getElementById('reg-name').value=p.name;
+    if(p.email){ document.getElementById('reg-email').value=p.email; }
+    if(p.institute) document.getElementById('reg-inst').value=p.institute;
+    if(p.phone){
+      const pfx=['+971','+61','+65','+44','+1','+91'];
+      for(const px of pfx){ if(p.phone.startsWith(px)){
+        document.getElementById('phone-pfx').value=px;
+        document.getElementById('reg-phone').value=p.phone.slice(px.length); break;
+      }}
+    }
+  }catch(e){}
+}
+
+// ══════════════════════════════════════════════════════════════
+//  SCREEN NAV
+// ══════════════════════════════════════════════════════════════
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+// ══════════════════════════════════════════════════════════════
+//  REGISTRATION & OTP
+// ══════════════════════════════════════════════════════════════
+function vName(){ const v=document.getElementById('reg-name').value.trim();
+  const h=document.getElementById('h-name'), i=document.getElementById('reg-name');
+  if(v.length<2){h.textContent='Min 2 characters.';h.className='field-hint err';i.className='field-input invalid';}
+  else{h.textContent='✓';h.className='field-hint ok';i.className='field-input valid';player.name=v;}
+  checkReg();}
+
+function vInst(){ const v=document.getElementById('reg-inst').value.trim();
+  const h=document.getElementById('h-inst'), i=document.getElementById('reg-inst');
+  if(v.length<2){h.textContent='Enter institute name.';h.className='field-hint err';i.className='field-input invalid';}
+  else{h.textContent='✓';h.className='field-hint ok';i.className='field-input valid';player.institute=v;}
+  checkReg();}
+
+function vPhone(){ const v=document.getElementById('reg-phone').value.replace(/\D/g,'');
+  const h=document.getElementById('h-phone'), i=document.getElementById('reg-phone');
+  if(v.length<7){h.textContent='Enter valid number.';h.className='field-hint err';i.className='field-input invalid';}
+  else{h.textContent='✓';h.className='field-hint ok';i.className='field-input valid';
+    player.phone=document.getElementById('phone-pfx').value+v;}
+  checkReg();}
+
+function vEmail(){ const v=document.getElementById('reg-email').value.trim();
+  const h=document.getElementById('h-email'), i=document.getElementById('reg-email');
+  const btn=document.getElementById('otp-send-btn');
+  const re=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if(!re.test(v)){h.textContent='Enter valid email.';h.className='field-hint err';i.className='field-input invalid';btn.disabled=true;}
+  else{h.textContent=emailVerified?'✓ Verified':'Click SEND OTP to verify.';
+    h.className=emailVerified?'field-hint ok':'field-hint';
+    i.className='field-input'+(emailVerified?' valid':'');
+    btn.disabled=emailVerified; player.email=v;}
+  checkReg();}
+
+function checkReg(){
+  const nameOk=/^[\w\s'.]{2,}$/.test(document.getElementById('reg-name').value.trim());
+  const instOk=document.getElementById('reg-inst').value.trim().length>=2;
+  const phoneOk=document.getElementById('reg-phone').value.replace(/\D/g,'').length>=7;
+  const terms=document.getElementById('terms').checked;
+  document.getElementById('reg-go-btn').disabled=!(nameOk&&instOk&&phoneOk&&emailVerified&&terms);
+}
+
+function sendOTP(){
+  const email=document.getElementById('reg-email').value.trim();
+  if(!email) return;
+  generatedOTP=String(Math.floor(100000+Math.random()*900000));
+  showNotif('OTP sent to '+email,'info');
+  showOTPModal(generatedOTP, email);
+  document.getElementById('otp-sect').classList.add('show');
+  document.getElementById('otp-send-btn').disabled=true;
+  for(let i=0;i<6;i++){const b=document.getElementById('o'+i);b.value='';b.className='otp-box';}
+  document.getElementById('h-otp').textContent='';
+  document.getElementById('otp-ok').style.display='none';
+  document.getElementById('o0').focus();
+  startOTPCountdown();
+}
+
+function showOTPModal(otp, email){
+  const ex=document.getElementById('otp-modal');
+  if(ex) ex.remove();
+  const d=document.createElement('div');
+  d.id='otp-modal';
+  d.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:400;background:rgba(10,10,31,.98);border:1px solid var(--yellow);border-radius:16px;padding:28px 32px;text-align:center;backdrop-filter:blur(18px);box-shadow:0 0 40px rgba(255,224,0,.2);max-width:340px;width:90%;animation:ovIn .4s cubic-bezier(.34,1.56,.64,1)';
+  d.innerHTML=`<div style="font-size:34px;margin-bottom:10px">📬</div>
+    <div style="font-family:'Orbitron',monospace;font-size:12px;color:var(--yellow);letter-spacing:2px;margin-bottom:8px">OTP DISPATCHED</div>
+    <div style="font-family:'Share Tech Mono',monospace;font-size:12px;color:var(--dim);margin-bottom:14px">Sent to <span style="color:var(--cyan)">${email}</span></div>
+    <div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--dim);margin-bottom:6px">DEMO MODE — Your OTP:</div>
+    <div style="font-family:'Orbitron',monospace;font-size:34px;color:var(--green);letter-spacing:8px;margin-bottom:16px">${otp}</div>
+    <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--dim);margin-bottom:16px">(Production: deliver via email API/backend)</div>
+    <button onclick="document.getElementById('otp-modal').remove()" style="font-family:'Orbitron',monospace;font-size:10px;letter-spacing:2px;padding:9px 22px;border:1px solid var(--cyan);border-radius:7px;background:rgba(0,245,255,.09);color:var(--cyan);cursor:pointer">GOT IT →</button>`;
+  document.body.appendChild(d);
+}
+
+function startOTPCountdown(){
+  let s=60;
+  const cd=document.getElementById('otp-cd'), rs=document.getElementById('otp-resend'), sEl=document.getElementById('otp-sec');
+  cd.style.display='block'; rs.style.display='none'; sEl.textContent=s;
+  if(otpTimer) clearInterval(otpTimer);
+  otpTimer=setInterval(()=>{s--;sEl.textContent=s;if(s<=0){clearInterval(otpTimer);cd.style.display='none';rs.style.display='inline-block';}},1000);
+}
+
+function oIn(i){
+  const b=document.getElementById('o'+i);
+  b.value=b.value.replace(/\D/g,'');
+  if(b.value){b.classList.add('filled');if(i<5)document.getElementById('o'+(i+1)).focus();}
+  else b.classList.remove('filled');
+  let code='';for(let j=0;j<6;j++)code+=document.getElementById('o'+j).value;
+  if(code.length===6) verifyOTP(code);
+}
+
+function oKey(e,i){if(e.key==='Backspace'&&!document.getElementById('o'+i).value&&i>0)document.getElementById('o'+(i-1)).focus();}
+
+function verifyOTP(code){
+  const h=document.getElementById('h-otp');
+  if(code===generatedOTP){
+    emailVerified=true;
+    for(let i=0;i<6;i++){const b=document.getElementById('o'+i);b.classList.remove('filled');b.classList.add('verified');b.disabled=true;}
+    document.getElementById('otp-ok').style.display='block';
+    document.getElementById('otp-cd').style.display='none';
+    document.getElementById('otp-resend').style.display='none';
+    if(otpTimer) clearInterval(otpTimer);
+    h.textContent='';
+    const ei=document.getElementById('reg-email');
+    ei.className='field-input valid'; ei.disabled=true;
+    document.getElementById('otp-send-btn').disabled=true;
+    document.getElementById('h-email').textContent='✓ Email verified!';
+    document.getElementById('h-email').className='field-hint ok';
+    showNotif('Email verified! ✓','good');
+    checkReg();
+  } else {
+    h.textContent='✗ Incorrect OTP.'; h.className='field-hint err';
+    showNotif('Incorrect OTP','bad');
+    for(let i=0;i<6;i++){const b=document.getElementById('o'+i);b.style.borderColor='var(--pink)';setTimeout(()=>{b.style.borderColor='';},600);}
+  }
+}
+
+function doRegister(){
+  player.name=document.getElementById('reg-name').value.trim();
+  player.institute=document.getElementById('reg-inst').value.trim();
+  player.email=document.getElementById('reg-email').value.trim();
+  player.phone=document.getElementById('phone-pfx').value+document.getElementById('reg-phone').value.replace(/\D/g,'');
+  localStorage.setItem('sqp', JSON.stringify(player));
+  showScreen('subject-screen');
+}
+
+// ══════════════════════════════════════════════════════════════
+//  SUBJECT & CAT
+// ══════════════════════════════════════════════════════════════
+function selSub(el){
+  document.querySelectorAll('.subject-card').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  state.subject=el.dataset.sub;
+  document.getElementById('sub-next-btn').disabled=false;
+}
+
+function buildCatGrid(){
+  const g=document.getElementById('cat-grid'); g.innerHTML='';
+  CATS.forEach((cat,i)=>{
+    const c=document.createElement('div'); c.className='cat-card';
+    c.innerHTML=`<div class="cat-svg">${cat.svg}</div><div class="cat-name">${cat.name}</div><div class="cat-year-lbl">GATE ${cat.year}</div>`;
+    c.onclick=()=>selCat(c,i);
+    g.appendChild(c);
+  });
+}
+
+function selCat(el,idx){
+  document.querySelectorAll('.cat-card').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  state.catIdx=idx;
+  document.getElementById('cat-next-btn').disabled=false;
+}
+
+// ══════════════════════════════════════════════════════════════
+//  GAME START
+// ══════════════════════════════════════════════════════════════
+function startGame(){
+  state.oxygen=100; state.level=1; state.solved=0; state.answerLog=[];
+  buildQuestionQueue();
+  initLevel();
+  showScreen('game-screen');
+  document.getElementById('stat-sub').textContent=state.subject;
+  document.getElementById('stat-cat').textContent=`${CATS[state.catIdx].name} (${CATS[state.catIdx].year})`;
+  document.getElementById('hud-player').textContent=player.name||'—';
+  document.getElementById('hud-inst').textContent=player.institute||'—';
+  saveSession();
+  submitToSheets('game_start');
+}
+
+function buildQuestionQueue(){
+  // Get all 55 questions for this subject, shuffle them
+  const pool=QBANK[state.subject]||[];
+  state.qQueue=shuffle([...pool.map((_,i)=>i)]);
+  state.qPointer=0;
+}
+
+function shuffle(arr){
+  for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}
+  return arr;
+}
+
+function initLevel(){
+  state.openedBoxes=new Array(TOTAL_BOXES).fill(false);
+  state.catPos=Math.floor(Math.random()*TOTAL_BOXES);
+  state.prevCatPos=state.catPos;
+  state.answerLocked=false; state.currentQ=null; state.currentBox=null;
+  stopTimer(); updateHUD(); buildGrid(); hideQCard(); hideScratch(); startCatTimer();
+}
+
+// ══════════════════════════════════════════════════════════════
+//  GRID
+// ══════════════════════════════════════════════════════════════
+function buildGrid(){
+  const g=document.getElementById('box-grid');
+  const cols=window.innerWidth<480?4:GRID_COLS;
+  g.style.gridTemplateColumns=`repeat(${cols},var(--box))`;
+  g.innerHTML='';
+  for(let i=0;i<TOTAL_BOXES;i++){
+    const box=document.createElement('div');
+    box.className='box'; box.style.setProperty('--i',i); box.dataset.idx=i;
+    const num=document.createElement('span'); num.className='box-num'; num.textContent=String(i+1).padStart(2,'0');
+    const cat=document.createElement('span'); cat.className='box-cat'; cat.textContent=CATS[state.catIdx].emoji;
+    box.appendChild(num); box.appendChild(cat);
+    if(state.openedBoxes[i]){ box.classList.add('opened'); num.style.display='none'; }
+    box.onclick=()=>onBoxClick(i,box);
+    g.appendChild(box);
+  }
+}
+
+function getBoxEl(idx){ return document.querySelector(`.box[data-idx="${idx}"]`); }
+
+// ══════════════════════════════════════════════════════════════
+//  BOX CLICK
+// ══════════════════════════════════════════════════════════════
+function onBoxClick(idx,el){
+  if(state.openedBoxes[idx]) return;
+  if(state.currentQ && !state.answerLocked) return; // must answer first
+
+  state.openedBoxes[idx]=true;
+  el.classList.add('opened');
+  el.querySelector('.box-num').style.display='none';
+
+  if(idx===state.catPos){
+    // Found the cat
+    el.classList.add('cat-found');
+    el.querySelector('.box-cat').style.display='block';
+    el.classList.remove('opened');
+    stopTimer();
+    setTimeout(()=>showWin(), 500);
+  } else {
+    // Wrong box — NO oxygen loss (req #7,8,9)
+    el.classList.add('flash-wrong');
+    setTimeout(()=>el.classList.remove('flash-wrong'),450);
+    showNextQuestion(idx);
+  }
+  saveSession();
+}
+
+// ══════════════════════════════════════════════════════════════
+//  QUESTION QUEUE LOGIC (req #12, must ask all 55, repeats wrong)
+// ══════════════════════════════════════════════════════════════
+function showNextQuestion(boxIdx){
+  if(state.qPointer>=state.qQueue.length){
+    // All 55 asked; reset pointer (loop back) but keep order
+    state.qPointer=0;
+  }
+  const pool=QBANK[state.subject];
+  const qIdx=state.qQueue[state.qPointer];
+  state.qPointer++;
+  const q=pool[qIdx];
+  state.currentQ=q; state.currentBox=boxIdx;
+  state.answerLocked=false;
+  renderQuestion(q);
+}
+
+function renderQuestion(q){
+  document.getElementById('q-badge').textContent=`Q ${q.id}`;
+  document.getElementById('q-meta').textContent=`${CATS[state.catIdx].name} · GATE ${CATS[state.catIdx].year}`;
+  // Type badge
+  const typeRow=document.getElementById('q-type-row');
+  typeRow.innerHTML=q.multi?'<span class="q-type-badge">MULTI-SELECT (choose all correct)</span>':'';
+  document.getElementById('q-text').textContent=q.q;
+
+  const ol=document.getElementById('opt-list'); ol.innerHTML='';
+  const labels=['A','B','C','D','E'];
+  if(q.multi){
+    // Multi-select: checkboxes
+    q.opts.forEach((opt,i)=>{
+      const btn=document.createElement('button');
+      btn.className='opt-btn'; btn.id=`opt-${i}`;
+      btn.innerHTML=`<input type="checkbox" class="opt-check" id="chk-${i}"> <span class="opt-lbl">${labels[i]}</span>${opt}`;
+      btn.onclick=()=>{ const chk=document.getElementById('chk-'+i); chk.checked=!chk.checked; };
+      ol.appendChild(btn);
+    });
+    document.getElementById('multi-submit-row').style.display='flex';
+  } else {
+    document.getElementById('multi-submit-row').style.display='none';
+    q.opts.forEach((opt,i)=>{
+      const btn=document.createElement('button');
+      btn.className='opt-btn';
+      btn.innerHTML=`<span class="opt-lbl">${labels[i]}</span>${opt}`;
+      btn.onclick=()=>submitSingle(i,btn,q);
+      ol.appendChild(btn);
+    });
+  }
+
+  const fb=document.getElementById('feedback'); fb.className='feedback-msg'; fb.textContent='';
+  document.getElementById('q-card').classList.add('visible');
+  document.getElementById('scratch-card').classList.add('visible');
+  resizeCanvas();
+  updateQProgress();
+}
+
+function submitSingle(choiceIdx, btn, q){
+  if(state.answerLocked) return;
+  state.answerLocked=true;
+  const optBtns=document.querySelectorAll('.opt-btn');
+  optBtns.forEach(b=>b.disabled=true);
+  const correct=q.ans.includes(choiceIdx);
+  // Show all correct answers
+  q.ans.forEach(ai=>{ const b=document.querySelectorAll('.opt-btn')[ai]; if(b) b.classList.add('correct-opt'); });
+  if(!correct) btn.classList.add('wrong-opt');
+
+  const fb=document.getElementById('feedback');
+  if(correct){
+    fb.textContent=`✓ CORRECT! +10% O₂`;
+    fb.className='feedback-msg fb-ok show';
+    changeOxy(+10); state.solved++;
+    showNotif('+10% O₂','good');
+    state.answerLog.push({id:q.id,correct:true,ts:Date.now()});
+  } else {
+    const correctLabels=q.ans.map(i=>['A','B','C','D','E'][i]).join(', ');
+    fb.textContent=`✗ Incorrect. −5% O₂. Correct: ${correctLabels}`;
+    fb.className='feedback-msg fb-bad show';
+    changeOxy(-5);
+    showNotif('−5% O₂','bad');
+    state.answerLog.push({id:q.id,correct:false,ts:Date.now()});
+    // Re-append question to queue so it comes back (req #30)
+    state.qQueue.push(state.qQueue[state.qPointer-1]);
+  }
+  updateHUD(); saveSession(); submitToSheets('answer');
+}
+
+function submitMulti(){
+  const q=state.currentQ;
+  if(!q||state.answerLocked) return;
+  state.answerLocked=true;
+  const optBtns=document.querySelectorAll('.opt-btn');
+  optBtns.forEach(b=>{ b.disabled=true; const chk=b.querySelector('.opt-check'); if(chk) chk.disabled=true; });
+  document.getElementById('multi-submit-row').style.display='none';
+
+  // Collect selected indices
+  const selected=[];
+  for(let i=0;i<q.opts.length;i++){ const chk=document.getElementById('chk-'+i); if(chk&&chk.checked) selected.push(i); }
+
+  // req #12: if ANY selected is correct, treat as correct
+  const anyCorrect=selected.some(s=>q.ans.includes(s));
+  // Show all correct answers highlighted
+  q.ans.forEach(ai=>{ const b=document.querySelectorAll('.opt-btn')[ai]; if(b) b.classList.add('correct-opt'); });
+  selected.forEach(si=>{ if(!q.ans.includes(si)){ const b=document.querySelectorAll('.opt-btn')[si]; if(b) b.classList.add('wrong-opt'); }});
+
+  const fb=document.getElementById('feedback');
+  const correctLabels=q.ans.map(i=>['A','B','C','D','E'][i]).join(', ');
+  if(anyCorrect){
+    fb.textContent=`✓ Correct! All correct answers: ${correctLabels}. +10% O₂`;
+    fb.className='feedback-msg fb-ok show';
+    changeOxy(+10); state.solved++;
+    showNotif('+10% O₂','good');
+    state.answerLog.push({id:q.id,correct:true,ts:Date.now()});
+  } else {
+    fb.textContent=`✗ No correct answer selected. Correct: ${correctLabels}. −5% O₂`;
+    fb.className='feedback-msg fb-bad show';
+    changeOxy(-5);
+    showNotif('−5% O₂','bad');
+    state.answerLog.push({id:q.id,correct:false,ts:Date.now()});
+    state.qQueue.push(state.qQueue[state.qPointer-1]);
+  }
+  updateHUD(); saveSession(); submitToSheets('answer');
+}
+
+function hideQCard(){ document.getElementById('q-card').classList.remove('visible'); }
+function hideScratch(){ document.getElementById('scratch-card').classList.remove('visible'); }
+
+function updateQProgress(){
+  const total=55;
+  const pct=Math.min(100,(state.solved/total)*100);
+  document.getElementById('q-prog').style.width=pct+'%';
+}
+
+// ══════════════════════════════════════════════════════════════
+//  OXYGEN (req #7-11)
+// ══════════════════════════════════════════════════════════════
+function changeOxy(delta){
+  state.oxygen=Math.max(0,Math.min(100,state.oxygen+delta));
+  updateOxyBar();
+  if(state.oxygen<=0){
+    stopTimer();
+    setTimeout(()=>document.getElementById('lose-ov').classList.add('show'),600);
+  }
+}
+
+function updateOxyBar(){
+  const pct=state.oxygen;
+  const fill=document.getElementById('oxy-fill'), pEl=document.getElementById('oxy-pct');
+  fill.style.width=pct+'%';
+  let cls='';
+  if(pct<=30) cls='crit'; else if(pct<=60) cls='warn';
+  fill.className='oxy-fill'+(cls?' '+cls:'');
+  pEl.className='oxy-pct'+(cls?' '+cls:'');
+  pEl.textContent=pct+'%';
+}
+
+// ══════════════════════════════════════════════════════════════
+//  CAT TIMER
+// ══════════════════════════════════════════════════════════════
+function startCatTimer(){
+  state.timerSecs=60; updateTimerRing();
+  state.timerInterval=setInterval(()=>{
+    state.timerSecs--; updateTimerRing();
+    if(state.timerSecs<=0){ moveCat(); state.timerSecs=60; }
+  },1000);
+}
+
+function stopTimer(){ if(state.timerInterval){clearInterval(state.timerInterval);state.timerInterval=null;} }
+
+function updateTimerRing(){
+  const offset=132*(1-state.timerSecs/60);
+  document.getElementById('timer-ring').style.strokeDashoffset=offset;
+  document.getElementById('timer-txt').textContent=state.timerSecs;
+}
+
+function moveCat(){
+  state.prevCatPos=state.catPos;
+  const r=Math.floor(state.catPos/GRID_COLS), c=state.catPos%GRID_COLS;
+  const nb=[];
+  if(r>0) nb.push((r-1)*GRID_COLS+c);
+  if(r<GRID_ROWS-1) nb.push((r+1)*GRID_COLS+c);
+  if(c>0) nb.push(r*GRID_COLS+(c-1));
+  if(c<GRID_COLS-1) nb.push(r*GRID_COLS+(c+1));
+  const valid=nb.filter(n=>!state.openedBoxes[n]);
+  if(valid.length>0){ state.catPos=valid[Math.floor(Math.random()*valid.length)]; showNotif('🐱 Cat moved!','info'); }
+}
+
+// ══════════════════════════════════════════════════════════════
+//  HUD
+// ══════════════════════════════════════════════════════════════
+function updateHUD(){
+  document.getElementById('hud-level').textContent=String(state.level).padStart(2,'0');
+  document.getElementById('hud-solved').textContent=state.solved+'/55';
+  updateOxyBar(); updateQProgress();
+}
+
+// ══════════════════════════════════════════════════════════════
+//  WIN / LOSE
+// ══════════════════════════════════════════════════════════════
+function showWin(){
+  document.getElementById('win-body').textContent=
+    `Level ${state.level} complete! O₂: ${state.oxygen}%. Questions answered: ${state.solved}/55.`;
+  document.getElementById('win-ov').classList.add('show');
+  submitToSheets('level_complete');
+}
+
+function nextLevel(){
+  document.getElementById('win-ov').classList.remove('show');
+  state.level++; state.oxygen=Math.min(100,state.oxygen);
+  // Carry same question queue forward
+  initLevel(); saveSession();
+  showNotif(`Level ${state.level} started!`,'info');
+}
+
+function retryLevel(){
+  document.getElementById('lose-ov').classList.remove('show');
+  state.oxygen=100; initLevel(); saveSession();
+}
+
+function confirmQuit(){
+  if(confirm('Quit and return to home?')){
+    stopTimer();
+    document.getElementById('win-ov').classList.remove('show');
+    document.getElementById('lose-ov').classList.remove('show');
+    submitToSheets('quit'); clearSession();
+    showScreen('home-screen');
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+//  SCRATCHPAD
+// ══════════════════════════════════════════════════════════════
+let painting=false, penColor='#00f5ff';
+
+function resizeCanvas(){
+  const cv=document.getElementById('scratch-canvas');
+  const sc=document.getElementById('scratch-card');
+  const w=Math.min(sc.clientWidth-28,580);
+  cv.width=w; cv.height=Math.round(w*.44); cv.style.width='100%';
+}
+
+(function initCanvas(){
+  document.addEventListener('DOMContentLoaded',()=>{
+    const cv=document.getElementById('scratch-canvas');
+    const ctx=()=>cv.getContext('2d');
+    const pos=e=>{const r=cv.getBoundingClientRect(),t=e.touches?e.touches[0]:e;return{x:t.clientX-r.left,y:t.clientY-r.top};};
+    cv.addEventListener('mousedown',e=>{painting=true;const p=pos(e);ctx().beginPath();ctx().moveTo(p.x,p.y);});
+    cv.addEventListener('mousemove',e=>{if(!painting)return;const p=pos(e),c=ctx();c.lineWidth=document.getElementById('brush-sz').value;c.strokeStyle=penColor;c.lineCap='round';c.lineTo(p.x,p.y);c.stroke();c.beginPath();c.moveTo(p.x,p.y);});
+    cv.addEventListener('mouseup',()=>painting=false);
+    cv.addEventListener('mouseleave',()=>painting=false);
+    cv.addEventListener('touchstart',e=>{e.preventDefault();painting=true;const p=pos(e);ctx().beginPath();ctx().moveTo(p.x,p.y);},{passive:false});
+    cv.addEventListener('touchmove',e=>{e.preventDefault();if(!painting)return;const p=pos(e),c=ctx();c.lineWidth=document.getElementById('brush-sz').value;c.strokeStyle=penColor;c.lineCap='round';c.lineTo(p.x,p.y);c.stroke();c.beginPath();c.moveTo(p.x,p.y);},{passive:false});
+    cv.addEventListener('touchend',()=>painting=false);
+  });
+})();
+
+function switchTab(tab){
+  ['draw','type','up'].forEach(t=>{
+    const p=document.getElementById('panel-'+t), b=document.getElementById('tab-'+t);
+    if(t===tab){p.style.display='block';b.classList.add('active-tab');}
+    else{p.style.display='none';b.classList.remove('active-tab');}
+  });
+  if(tab==='draw') resizeCanvas();
+}
+
+function setPen(el){ document.querySelectorAll('.swatch').forEach(s=>s.classList.remove('on')); el.classList.add('on'); penColor=el.dataset.c; }
+function clearCanvas(){ const c=document.getElementById('scratch-canvas'); c.getContext('2d').clearRect(0,0,c.width,c.height); }
+function dlCanvas(){ const c=document.getElementById('scratch-canvas'),a=document.createElement('a'); a.download='scratchpad.png'; a.href=c.toDataURL(); a.click(); }
+function copyNotes(){ const t=document.getElementById('scratch-text').value; if(!t){showNotif('Nothing to copy','info');return;} navigator.clipboard.writeText(t).then(()=>showNotif('Copied!','good')).catch(()=>showNotif('Copy failed','bad')); }
+function dlNotes(){ const t=document.getElementById('scratch-text').value; if(!t){showNotif('Nothing to save','info');return;} const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([t],{type:'text/plain'})); a.download='notes.txt'; a.click(); showNotif('Saved!','good'); }
+function clearNotes(){ document.getElementById('scratch-text').value=''; }
+
+// Upload proof → +25% O₂ and return cat to previous position (req #10, #11)
+function handleUpload(e){
+  const f=e.target.files[0]; if(!f) return;
+  document.getElementById('upload-name').textContent='✓ '+f.name;
+  showNotif('Proof uploaded! +25% O₂. Cat returned.','good');
+
+  // Add +25% oxygen (req #11)
+  changeOxy(+25);
+  // Return cat to previous position (req #10)
+  state.catPos=state.prevCatPos;
+  showNotif('🐱 Cat returned to previous position!','info');
+
+  // Show preview
+  const prev=document.getElementById('upload-preview');
+  if(f.type.startsWith('image/')){
+    const reader=new FileReader();
+    reader.onload=ev=>{prev.innerHTML=`<img src="${ev.target.result}" style="max-width:100%;max-height:150px;border-radius:8px;border:1px solid rgba(0,245,255,.2);margin-top:4px">`;};
+    reader.readAsDataURL(f);
+  } else {
+    prev.innerHTML=`<div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--purple);margin-top:4px">📄 PDF: ${f.name}</div>`;
+  }
+  updateHUD(); saveSession(); submitToSheets('upload_proof');
+}
+
+// ══════════════════════════════════════════════════════════════
+//  GOOGLE SHEETS SUBMISSION
+//  Method: hidden <form> + <iframe> target
+//  Why: fetch() with no-cors fails on GitHub Pages because Apps Script
+//  redirects the POST to a google.com domain — browsers block cross-origin
+//  redirects even in no-cors mode ("Failed to fetch").
+//  A native HTML form submission is NOT subject to CORS at all.
+//  The response lands in the hidden iframe (we never read it), so the
+//  user sees nothing, but the data reaches Apps Script successfully.
+// ══════════════════════════════════════════════════════════════
+(function createSubmitFrame(){
+  // Create a hidden iframe — form responses land here silently
+  const iframe = document.createElement('iframe');
+  iframe.name = 'sheets_sink';
+  iframe.style.cssText = 'display:none;width:0;height:0;border:0;position:absolute;top:-9999px';
+  document.body.appendChild(iframe);
+})();
+
+function submitToSheets(event){
+  const TRACK_EVENTS = ['game_start','answer','upload_proof','level_complete','quit'];
+  if(!TRACK_EVENTS.includes(event)) return;
+
+  const cat = CATS[state.catIdx] || {};
+  const payload = {
+    event,
+    timestamp:  new Date().toISOString(),
+    name:       player.name      || '',
+    email:      player.email     || '',
+    phone:      player.phone     || '',
+    institute:  player.institute || '',
+    subject:    state.subject    || '',
+    cat:        cat.name         || '',
+    gateYear:   String(cat.year  || ''),
+    level:      String(state.level  || 1),
+    oxygen:     String(state.oxygen || 0),
+    solved:     String(state.solved || 0),
+    totalQ:     '55',
+    answers:    JSON.stringify(state.answerLog ? state.answerLog.slice(-5) : [])
+  };
+
+  // ── 1. Always persist locally (instant, never fails) ──
+  try {
+    const all = JSON.parse(localStorage.getItem('sq_all_data') || '[]');
+    all.push(payload);
+    localStorage.setItem('sq_all_data', JSON.stringify(all.slice(-500)));
+  } catch(e){}
+
+  // ── 2. Submit via hidden form → hidden iframe (bypasses CORS entirely) ──
+  try {
+    // Remove any previous ghost form
+    const old = document.getElementById('__sheets_form__');
+    if(old) old.remove();
+
+    const form = document.createElement('form');
+    form.id     = '__sheets_form__';
+    form.method = 'POST';
+    form.action = SHEETS_URL;
+    form.target = 'sheets_sink';   // response goes into the hidden iframe
+    form.style.cssText = 'display:none;position:absolute;top:-9999px';
+
+    Object.keys(payload).forEach(key => {
+      const inp = document.createElement('input');
+      inp.type  = 'hidden';
+      inp.name  = key;
+      inp.value = payload[key];
+      form.appendChild(inp);
+    });
+
+    document.body.appendChild(form);
+    form.submit();
+
+    console.log('[Sheets ✓] Submitted via form —', event, '|', payload.name, '/', payload.subject);
+  } catch(err){
+    console.warn('[Sheets ✗] Form submit failed:', err);
+  }
+}
+
+// Export all local data as CSV (fallback)
+function exportCSV(){
+  const data=JSON.parse(localStorage.getItem('sq_all_data')||'[]');
+  if(!data.length){showNotif('No data found','info');return;}
+  const keys=Object.keys(data[0]);
+  const csv=[keys.join(','),...data.map(r=>keys.map(k=>`"${String(r[k]||'').replace(/"/g,'""')}"`).join(','))].join('\n');
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.download='game_data.csv'; a.click();
+  showNotif('CSV exported!','good');
+}
+
+// ══════════════════════════════════════════════════════════════
+//  LOCAL STORAGE
+// ══════════════════════════════════════════════════════════════
+const SAVE_KEY='sqrs';
+
+function saveSession(){
+  const d={
+    subject:state.subject, catIdx:state.catIdx,
+    oxygen:state.oxygen, level:state.level, solved:state.solved,
+    openedBoxes:state.openedBoxes, catPos:state.catPos, prevCatPos:state.prevCatPos,
+    qQueue:state.qQueue, qPointer:state.qPointer, answerLog:state.answerLog,
+    player
+  };
+  localStorage.setItem(SAVE_KEY,JSON.stringify(d));
+}
+
+function clearSession(){ localStorage.removeItem(SAVE_KEY); }
+
+function checkResume(){
+  const raw=localStorage.getItem(SAVE_KEY);
+  if(!raw) return;
+  try{
+    const d=JSON.parse(raw);
+    if(d.subject && d.level){
+      const banner=document.getElementById('resume-banner');
+      banner.style.display='flex'; window._resumeData=d;
+    }
+  }catch(e){}
+}
+
+function resumeSession(){
+  const d=window._resumeData; if(!d) return;
+  Object.assign(state,{
+    subject:d.subject, catIdx:d.catIdx||0,
+    oxygen:d.oxygen||100, level:d.level||1, solved:d.solved||0,
+    openedBoxes:d.openedBoxes||new Array(TOTAL_BOXES).fill(false),
+    catPos:d.catPos||0, prevCatPos:d.prevCatPos||0,
+    qQueue:d.qQueue||[], qPointer:d.qPointer||0,
+    answerLog:d.answerLog||[]
+  });
+  if(d.player) Object.assign(player,d.player);
+  document.getElementById('resume-banner').style.display='none';
+  document.getElementById('stat-sub').textContent=state.subject;
+  document.getElementById('stat-cat').textContent=`${CATS[state.catIdx].name} (${CATS[state.catIdx].year})`;
+  document.getElementById('hud-player').textContent=player.name||'—';
+  document.getElementById('hud-inst').textContent=player.institute||'—';
+  initLevel(); showScreen('game-screen');
+  showNotif(`Resumed — Level ${state.level}`,'info');
+}
+
+function dismissResume(){ document.getElementById('resume-banner').style.display='none'; clearSession(); }
+
+// ══════════════════════════════════════════════════════════════
+//  NOTIFICATIONS
+// ══════════════════════════════════════════════════════════════
+function showNotif(msg,type='info'){
+  const c=document.getElementById('notifs');
+  const n=document.createElement('div'); n.className=`notif ${type}`; n.textContent=msg;
+  c.appendChild(n); setTimeout(()=>n.remove(),3200);
+}
+
+// ══════════════════════════════════════════════════════════════
+//  RESPONSIVE
+// ══════════════════════════════════════════════════════════════
+window.addEventListener('resize',()=>{
+  if(document.getElementById('game-screen').classList.contains('active')) buildGrid();
+  resizeCanvas();
+});
+</script>
+</body>
+</html>
